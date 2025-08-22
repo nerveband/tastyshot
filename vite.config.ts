@@ -10,16 +10,23 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Tasty Shot',
+        name: 'Tasty Shot - AI Photo Editor',
         short_name: 'TastyShot',
-        description: 'Professional AI-powered photo editor with instant camera access',
-        theme_color: '#000000',
+        description: 'Professional AI-powered photo editor with instant camera access. Transform your food photos with Leica-inspired editing presets.',
+        theme_color: '#FF4444',
         background_color: '#000000',
         display: 'standalone',
         scope: '/',
         start_url: '/',
         orientation: 'portrait',
+        categories: ['photo', 'productivity', 'lifestyle'],
+        lang: 'en',
         icons: [
+          {
+            src: 'app-icon.png',
+            sizes: '1024x1024',
+            type: 'image/png'
+          },
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
@@ -35,6 +42,20 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
+          },
+          {
+            src: 'apple-touch-icon.png',
+            sizes: '1024x1024',
+            type: 'image/png',
+            purpose: 'any'
+          }
+        ],
+        screenshots: [
+          {
+            src: 'app-icon.png',
+            sizes: '1024x1024',
+            type: 'image/png',
+            form_factor: 'wide'
           }
         ]
       },
