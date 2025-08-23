@@ -87,15 +87,25 @@ export const replicateService = {
     switch (model.id) {
       case 'flux-kontext-max':
       case 'flux-kontext-pro':
-      case 'flux-krea-dev':
         const fluxKontextSettings = settings as FluxKontextSettings;
         return {
-          ...baseInput,
           prompt: fluxKontextSettings.prompt || "Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.",
-          guidance_scale: fluxKontextSettings.guidance_scale || 3.5,
-          num_inference_steps: fluxKontextSettings.num_inference_steps || 28,
-          width: fluxKontextSettings.width || 1024,
-          height: fluxKontextSettings.height || 1024,
+          input_image: imageUrl,
+          aspect_ratio: "match_input_image",
+          output_format: "jpg",
+          safety_tolerance: 2,
+          seed: settings.seed || Math.floor(Math.random() * 1000000),
+        };
+
+      case 'flux-krea-dev':
+        const fluxKreaSettings = settings as FluxKontextSettings;
+        return {
+          ...baseInput,
+          prompt: fluxKreaSettings.prompt || "Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.",
+          guidance_scale: fluxKreaSettings.guidance_scale || 3.5,
+          num_inference_steps: fluxKreaSettings.num_inference_steps || 28,
+          width: fluxKreaSettings.width || 1024,
+          height: fluxKreaSettings.height || 1024,
         };
 
       case 'seededit-30':
@@ -236,6 +246,24 @@ export const replicateService = {
   // Get available AI models
   getAvailableModels: (): AIModel[] => [
     {
+      id: 'flux-kontext-pro',
+      name: 'Flux Kontext Pro',
+      description: 'State-of-the-art image editing with strong prompt following and consistent results',
+      provider: 'Black Forest Labs',
+      category: 'image-editing',
+      replicateModel: 'black-forest-labs/flux-kontext-pro',
+      supportedInputs: ['camera', 'upload'],
+      defaultSettings: {
+        prompt: 'Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.',
+        guidance_scale: 3.5,
+        num_inference_steps: 28,
+        width: 1024,
+        height: 1024,
+      } as FluxKontextSettings,
+      estimatedTime: '45-75 seconds',
+      cost: 3,
+    },
+    {
       id: 'seededit-30',
       name: 'SeedEdit 3.0',
       description: 'Fast and high-quality generative image editing preserving details while making targeted edits',
@@ -288,24 +316,6 @@ export const replicateService = {
       } as FluxKontextSettings,
       estimatedTime: '45-75 seconds',
       cost: 2,
-    },
-    {
-      id: 'flux-kontext-pro',
-      name: 'Flux Kontext Pro',
-      description: 'State-of-the-art image editing with strong prompt following and consistent results',
-      provider: 'Black Forest Labs',
-      category: 'image-editing',
-      replicateModel: 'black-forest-labs/flux-kontext-pro',
-      supportedInputs: ['camera', 'upload'],
-      defaultSettings: {
-        prompt: 'Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.',
-        guidance_scale: 3.5,
-        num_inference_steps: 28,
-        width: 1024,
-        height: 1024,
-      } as FluxKontextSettings,
-      estimatedTime: '45-75 seconds',
-      cost: 3,
     },
     {
       id: 'qwen-image-edit',
@@ -364,8 +374,8 @@ export const replicateService = {
     {
       id: 'professional',
       name: 'PRO EDIT',
-      description: 'Professional studio lighting',
-      prompt: 'Apply professional studio lighting effects to this image. Add even, diffused lighting, eliminate harsh shadows, create clean highlights, improve skin tones if present, add professional color correction, enhance clarity and sharpness, and optimize exposure for commercial photography quality.',
+      description: 'Professional Leica-style photograph',
+      prompt: 'turn into a professional photograph with great color, incredible detail, should feel like a leica. change perspective to be aesthetically pleasing.',
       icon: 'camera',
       cost: 2,
     },
