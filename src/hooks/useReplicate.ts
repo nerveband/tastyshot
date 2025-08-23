@@ -27,10 +27,36 @@ export const useReplicate = () => {
       // Since we're using replicate.run() on the server, the result is already complete
       if (result.status === 'succeeded' && result.output && result.output.length > 0) {
         setIsProcessing(false);
-        const editedImageUrl = result.output[0];
-        console.log('useReplicate - returning edited image URL:', editedImageUrl);
+        const outputItem = result.output[0];
+        console.log('useReplicate - output item:', outputItem);
+        console.log('useReplicate - output item type:', typeof outputItem);
+        
+        // Handle different output formats from Replicate models
+        let editedImageUrl: string;
+        if (typeof outputItem === 'string') {
+          // Direct URL string
+          editedImageUrl = outputItem;
+        } else if (outputItem && typeof outputItem === 'object') {
+          // Object with URL property - check common property names
+          if (outputItem.url) {
+            editedImageUrl = outputItem.url;
+          } else if (outputItem.image) {
+            editedImageUrl = outputItem.image;
+          } else if (outputItem.output) {
+            editedImageUrl = outputItem.output;
+          } else {
+            console.error('Unknown output object structure:', Object.keys(outputItem));
+            throw new Error('Unable to extract image URL from model output');
+          }
+        } else {
+          throw new Error('Invalid output format from model');
+        }
+        
+        console.log('useReplicate - extracted image URL:', editedImageUrl);
         console.log('useReplicate - URL type:', typeof editedImageUrl);
         console.log('useReplicate - URL length:', editedImageUrl?.length);
+        console.log('useReplicate - URL starts with:', editedImageUrl?.substring(0, 30));
+        
         return editedImageUrl;
       } else if (result.error) {
         throw new Error(result.error);
@@ -58,7 +84,28 @@ export const useReplicate = () => {
       // Since we're using replicate.run() on the server, the result is already complete
       if (result.status === 'succeeded' && result.output && result.output.length > 0) {
         setIsProcessing(false);
-        return result.output[0];
+        const outputItem = result.output[0];
+        
+        // Handle different output formats from Replicate models
+        let upscaledImageUrl: string;
+        if (typeof outputItem === 'string') {
+          upscaledImageUrl = outputItem;
+        } else if (outputItem && typeof outputItem === 'object') {
+          if (outputItem.url) {
+            upscaledImageUrl = outputItem.url;
+          } else if (outputItem.image) {
+            upscaledImageUrl = outputItem.image;
+          } else if (outputItem.output) {
+            upscaledImageUrl = outputItem.output;
+          } else {
+            console.error('Unknown upscale output object structure:', Object.keys(outputItem));
+            throw new Error('Unable to extract image URL from upscaler output');
+          }
+        } else {
+          throw new Error('Invalid output format from upscaler');
+        }
+        
+        return upscaledImageUrl;
       } else if (result.error) {
         throw new Error(result.error);
       } else {

@@ -103,6 +103,15 @@ export default async function handler(req, res) {
           console.log('Result is array:', Array.isArray(result));
           console.log('Result:', JSON.stringify(result, null, 2));
           
+          // Debug the result structure to understand what Replicate returns
+          if (Array.isArray(result) && result.length > 0) {
+            console.log('First result item type:', typeof result[0]);
+            console.log('First result item:', JSON.stringify(result[0], null, 2));
+            if (typeof result[0] === 'object' && result[0]) {
+              console.log('Object keys:', Object.keys(result[0]));
+            }
+          }
+          
           // Return in consistent format
           const response = {
             id: `${model.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`,
