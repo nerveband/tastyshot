@@ -66,20 +66,28 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
 
   return (
     <div style={{ 
-      minHeight: '100vh', 
+      height: '100vh',
+      width: '100vw',
       backgroundColor: 'var(--color-tasty-black)', 
       display: 'flex',
       flexDirection: 'column',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0
     }}>
       {/* Header */}
       <div style={{
         padding: '16px 20px',
+        paddingTop: 'max(16px, env(safe-area-inset-top))',
         backgroundColor: 'rgba(0, 0, 0, 0.9)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         minHeight: '60px',
+        flexShrink: 0,
         zIndex: 1000
       }}>
         <div style={{ 
@@ -108,13 +116,14 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
 
       {/* Camera Viewfinder Container */}
       <div style={{ 
-        flex: 1, 
+        flex: 1,
         position: 'relative',
+        backgroundColor: '#000',
+        overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#000',
-        overflow: 'hidden'
+        minHeight: 0
       }}>
         <video
           ref={videoRef}
@@ -122,7 +131,7 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            borderRadius: '0'
+            display: 'block'
           }}
           playsInline
           muted
@@ -297,12 +306,15 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
       {/* Bottom Controls */}
       <div style={{
         padding: '20px',
+        paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
         backgroundColor: 'rgba(0, 0, 0, 0.95)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         minHeight: '140px',
-        zIndex: 1000
+        flexShrink: 0,
+        zIndex: 1000,
+        borderTop: '1px solid rgba(245, 245, 245, 0.1)'
       }}>
         {/* Controls Row */}
         <div style={{ 
