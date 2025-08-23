@@ -1,4 +1,4 @@
-import type { AIModel, ReplicateModelSettings, UpscaleSettings, ReplicateResponse, SeedEditSettings, FluxKontextSettings, QwenImageEditSettings } from '../types';
+import type { AIModel, ReplicateModelSettings, UpscaleSettings, ReplicateResponse, FluxKontextSettings } from '../types';
 
 export const replicateService = {
   // Run any AI model via server-side API

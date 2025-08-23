@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { ReactCompareSlider, ReactCompareSliderImage } from 'react-compare-slider';
 import { useReplicate } from '../../hooks/useReplicate';
 import { ModelPicker } from '../ModelPicker/ModelPicker';
