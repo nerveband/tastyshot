@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useCamera } from '../../hooks/useCamera';
-import { FolderOpen, SwitchCamera, AlertTriangle, Camera, History } from 'lucide-react';
+import { FolderOpen, SwitchCamera, AlertTriangle, Camera, History, Info } from 'lucide-react';
 
 interface CameraInterfaceProps {
   onPhotoCapture: (photoDataURL: string) => void;
@@ -333,25 +333,25 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
 
       {/* Bottom Controls */}
       <div style={{
-        padding: '20px',
-        paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
+        padding: '24px 20px',
+        paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
         backgroundColor: 'rgba(0, 0, 0, 0.95)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        minHeight: '140px',
+        minHeight: '160px',
         flexShrink: 0,
         zIndex: 1000,
         borderTop: '1px solid rgba(245, 245, 245, 0.1)'
       }}>
-        {/* Controls Row */}
+        {/* Top Row - Secondary Actions */}
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center', 
           width: '100%',
-          maxWidth: '360px',
-          marginBottom: '16px'
+          maxWidth: '200px',
+          marginBottom: '24px'
         }}>
           {/* Upload Image button */}
           <div style={{ position: 'relative' }}>
@@ -372,10 +372,10 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             />
             <button 
               style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '12px',
-                backgroundColor: 'rgba(245, 245, 245, 0.2)',
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                backgroundColor: 'transparent',
                 border: 'none',
                 display: 'flex',
                 alignItems: 'center',
@@ -383,43 +383,116 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
                 cursor: 'pointer',
                 WebkitTapHighlightColor: 'transparent',
                 touchAction: 'manipulation',
-                backdropFilter: 'blur(4px)',
+                transition: 'opacity 0.2s',
                 pointerEvents: 'none'
               }}
             >
-              <FolderOpen size={24} color="rgb(245, 245, 245)" />
+              <FolderOpen size={26} color="rgba(245, 245, 245, 0.8)" />
             </button>
           </div>
 
-          {/* Capture button */}
+          {/* About button */}
+          <button
+            onClick={() => alert('Tasty Shot v1.0\n\nAI-powered food photography app\n\nTransform your food photos with professional AI enhancement using state-of-the-art models.')}
+            onTouchStart={() => {}}
+            disabled={isLoading}
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              backgroundColor: 'transparent',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              WebkitTapHighlightColor: 'transparent',
+              touchAction: 'manipulation',
+              transition: 'opacity 0.2s',
+              opacity: isLoading ? 0.5 : 0.8
+            }}
+          >
+            <Info size={26} color="rgba(245, 245, 245, 0.8)" />
+          </button>
+        </div>
+
+        {/* Main Action Row */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          width: '100%',
+          maxWidth: '280px',
+          marginBottom: '16px'
+        }}>
+          {/* History button */}
+          {onHistoryClick && (
+            <button
+              onClick={onHistoryClick}
+              onTouchStart={() => {}}
+              disabled={isLoading}
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                backgroundColor: 'transparent',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation',
+                transition: 'opacity 0.2s',
+                opacity: isLoading ? 0.5 : 0.9
+              }}
+            >
+              <History size={28} color="rgba(245, 245, 245, 0.9)" />
+            </button>
+          )}
+
+          {/* Capture button - CENTERED */}
           <button
             onClick={handleCapturePhoto}
             onTouchStart={() => {}}
             disabled={isLoading}
             style={{
-              width: '80px',
-              height: '80px',
+              width: '88px',
+              height: '88px',
               borderRadius: '50%',
               backgroundColor: 'var(--color-tasty-white)',
-              border: '4px solid var(--color-tasty-black)',
+              border: '5px solid rgba(0, 0, 0, 0.8)',
               position: 'relative',
               cursor: 'pointer',
               WebkitTapHighlightColor: 'transparent',
               touchAction: 'manipulation',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
-              transition: 'transform 0.15s',
-              opacity: isLoading ? 0.5 : 1
+              boxShadow: '0 12px 20px -3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+              transition: 'transform 0.15s, box-shadow 0.15s',
+              opacity: isLoading ? 0.6 : 1
             }}
-            onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
-            onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = 'scale(0.92)';
+              e.currentTarget.style.boxShadow = '0 6px 12px -3px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 12px 20px -3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 12px 20px -3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+            }}
+            onTouchEnd={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 12px 20px -3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+            }}
           >
             <div style={{
               position: 'absolute',
-              top: '8px',
-              left: '8px',
-              right: '8px',
-              bottom: '8px',
+              top: '6px',
+              left: '6px',
+              right: '6px',
+              bottom: '6px',
               borderRadius: '50%',
               background: 'var(--gradient-tasty)',
               pointerEvents: 'none'
@@ -434,8 +507,8 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             style={{
               width: '56px',
               height: '56px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(245, 245, 245, 0.2)',
+              borderRadius: '50%',
+              backgroundColor: 'transparent',
               border: 'none',
               display: 'flex',
               alignItems: 'center',
@@ -443,52 +516,25 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
               cursor: 'pointer',
               WebkitTapHighlightColor: 'transparent',
               touchAction: 'manipulation',
-              backdropFilter: 'blur(4px)',
-              transition: 'backgroundColor 0.15s',
-              opacity: isLoading ? 0.5 : 1
+              transition: 'opacity 0.2s',
+              opacity: isLoading ? 0.5 : 0.9
             }}
           >
-            <SwitchCamera size={24} color="rgb(245, 245, 245)" />
+            <SwitchCamera size={28} color="rgba(245, 245, 245, 0.9)" />
           </button>
-
-          {/* History button */}
-          {onHistoryClick && (
-            <button
-              onClick={onHistoryClick}
-              onTouchStart={() => {}}
-              disabled={isLoading}
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '12px',
-                backgroundColor: 'rgba(245, 245, 245, 0.2)',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                WebkitTapHighlightColor: 'transparent',
-                touchAction: 'manipulation',
-                backdropFilter: 'blur(4px)',
-                transition: 'backgroundColor 0.15s',
-                opacity: isLoading ? 0.5 : 1
-              }}
-            >
-              <History size={24} color="rgb(245, 245, 245)" />
-            </button>
-          )}
         </div>
 
         {/* Instructions */}
         <div style={{ textAlign: 'center' }}>
           <p style={{ 
-            color: 'rgba(245, 245, 245, 0.7)', 
-            fontSize: '12px',
+            color: 'rgba(245, 245, 245, 0.6)', 
+            fontSize: '11px',
             textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            margin: 0
+            letterSpacing: '0.08em',
+            margin: 0,
+            fontWeight: '500'
           }}>
-            TAP TO CAPTURE • UPLOAD • HISTORY
+            TAP TO CAPTURE
           </p>
         </div>
       </div>
