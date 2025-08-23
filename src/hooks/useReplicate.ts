@@ -38,12 +38,13 @@ export const useReplicate = () => {
           editedImageUrl = outputItem;
         } else if (outputItem && typeof outputItem === 'object') {
           // Object with URL property - check common property names
-          if (outputItem.url) {
-            editedImageUrl = outputItem.url;
-          } else if (outputItem.image) {
-            editedImageUrl = outputItem.image;
-          } else if (outputItem.output) {
-            editedImageUrl = outputItem.output;
+          const obj = outputItem as any;
+          if (obj.url) {
+            editedImageUrl = obj.url;
+          } else if (obj.image) {
+            editedImageUrl = obj.image;
+          } else if (obj.output) {
+            editedImageUrl = obj.output;
           } else {
             console.error('Unknown output object structure:', Object.keys(outputItem));
             throw new Error('Unable to extract image URL from model output');
@@ -91,12 +92,13 @@ export const useReplicate = () => {
         if (typeof outputItem === 'string') {
           upscaledImageUrl = outputItem;
         } else if (outputItem && typeof outputItem === 'object') {
-          if (outputItem.url) {
-            upscaledImageUrl = outputItem.url;
-          } else if (outputItem.image) {
-            upscaledImageUrl = outputItem.image;
-          } else if (outputItem.output) {
-            upscaledImageUrl = outputItem.output;
+          const obj = outputItem as any;
+          if (obj.url) {
+            upscaledImageUrl = obj.url;
+          } else if (obj.image) {
+            upscaledImageUrl = obj.image;
+          } else if (obj.output) {
+            upscaledImageUrl = obj.output;
           } else {
             console.error('Unknown upscale output object structure:', Object.keys(outputItem));
             throw new Error('Unable to extract image URL from upscaler output');
