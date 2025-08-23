@@ -25,38 +25,20 @@ export const useReplicate = () => {
       console.log('useReplicate - result.output[0]:', result.output?.[0]);
       
       // Since we're using replicate.run() on the server, the result is already complete
+      // The serverless function now handles FileOutput extraction and returns string URLs
       if (result.status === 'succeeded' && result.output && result.output.length > 0) {
         setIsProcessing(false);
-        const outputItem = result.output[0];
-        console.log('useReplicate - output item:', outputItem);
-        console.log('useReplicate - output item type:', typeof outputItem);
-        
-        // Handle different output formats from Replicate models
-        let editedImageUrl: string;
-        if (typeof outputItem === 'string') {
-          // Direct URL string
-          editedImageUrl = outputItem;
-        } else if (outputItem && typeof outputItem === 'object') {
-          // Object with URL property - check common property names
-          const obj = outputItem as any;
-          if (obj.url) {
-            editedImageUrl = obj.url;
-          } else if (obj.image) {
-            editedImageUrl = obj.image;
-          } else if (obj.output) {
-            editedImageUrl = obj.output;
-          } else {
-            console.error('Unknown output object structure:', Object.keys(outputItem));
-            throw new Error('Unable to extract image URL from model output');
-          }
-        } else {
-          throw new Error('Invalid output format from model');
-        }
-        
-        console.log('useReplicate - extracted image URL:', editedImageUrl);
+        const editedImageUrl = result.output[0];
+        console.log('useReplicate - received processed image URL:', editedImageUrl);
         console.log('useReplicate - URL type:', typeof editedImageUrl);
         console.log('useReplicate - URL length:', editedImageUrl?.length);
         console.log('useReplicate - URL starts with:', editedImageUrl?.substring(0, 30));
+        
+        // The serverless function should have already extracted the URL from FileOutput
+        if (typeof editedImageUrl !== 'string') {
+          console.error('Expected string URL but got:', typeof editedImageUrl, editedImageUrl);
+          throw new Error('Invalid image URL format from server');
+        }
         
         return editedImageUrl;
       } else if (result.error) {
@@ -82,29 +64,16 @@ export const useReplicate = () => {
     try {
       const result = await replicateService.upscaleImage(imageUrl, settings);
       
-      // Since we're using replicate.run() on the server, the result is already complete
+      // Since we're using replicate.run() on the server, the result is already complete  
+      // The serverless function now handles FileOutput extraction and returns string URLs
       if (result.status === 'succeeded' && result.output && result.output.length > 0) {
         setIsProcessing(false);
-        const outputItem = result.output[0];
+        const upscaledImageUrl = result.output[0];
         
-        // Handle different output formats from Replicate models
-        let upscaledImageUrl: string;
-        if (typeof outputItem === 'string') {
-          upscaledImageUrl = outputItem;
-        } else if (outputItem && typeof outputItem === 'object') {
-          const obj = outputItem as any;
-          if (obj.url) {
-            upscaledImageUrl = obj.url;
-          } else if (obj.image) {
-            upscaledImageUrl = obj.image;
-          } else if (obj.output) {
-            upscaledImageUrl = obj.output;
-          } else {
-            console.error('Unknown upscale output object structure:', Object.keys(outputItem));
-            throw new Error('Unable to extract image URL from upscaler output');
-          }
-        } else {
-          throw new Error('Invalid output format from upscaler');
+        // The serverless function should have already extracted the URL from FileOutput
+        if (typeof upscaledImageUrl !== 'string') {
+          console.error('Expected string URL but got:', typeof upscaledImageUrl, upscaledImageUrl);
+          throw new Error('Invalid upscaled image URL format from server');
         }
         
         return upscaledImageUrl;

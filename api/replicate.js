@@ -99,24 +99,68 @@ export default async function handler(req, res) {
           
           const endTime = Date.now();
           console.log('Replicate.run completed in', endTime - startTime, 'ms');
-          console.log('Result type:', typeof result);
-          console.log('Result is array:', Array.isArray(result));
-          console.log('Result:', JSON.stringify(result, null, 2));
+          console.log('Raw result type:', typeof result);
+          console.log('Raw result is array:', Array.isArray(result));
+          console.log('Raw result:', JSON.stringify(result, null, 2));
           
-          // Debug the result structure to understand what Replicate returns
-          if (Array.isArray(result) && result.length > 0) {
-            console.log('First result item type:', typeof result[0]);
-            console.log('First result item:', JSON.stringify(result[0], null, 2));
-            if (typeof result[0] === 'object' && result[0]) {
-              console.log('Object keys:', Object.keys(result[0]));
+          // Process FileOutput objects according to official Replicate docs
+          let processedOutput;
+          if (Array.isArray(result)) {
+            console.log('Processing array result...');
+            processedOutput = [];
+            for (let i = 0; i < result.length; i++) {
+              const item = result[i];
+              console.log(`Processing item ${i}:`, typeof item, item);
+              
+              // Check if it's a FileOutput object with .url() method
+              if (item && typeof item === 'object' && typeof item.url === 'function') {
+                console.log(`Item ${i} is FileOutput, extracting URL...`);
+                const urlString = item.url();
+                console.log(`Extracted URL from FileOutput:`, urlString);
+                processedOutput.push(urlString);
+              } else if (typeof item === 'string') {
+                console.log(`Item ${i} is direct string:`, item);
+                processedOutput.push(item);
+              } else if (item && typeof item === 'object') {
+                // Handle plain objects (fallback)
+                console.log(`Item ${i} is plain object, keys:`, Object.keys(item));
+                if (item.url) {
+                  processedOutput.push(item.url);
+                } else if (item.image) {
+                  processedOutput.push(item.image);
+                } else {
+                  console.error(`Unknown object structure for item ${i}:`, item);
+                  processedOutput.push(item);
+                }
+              } else {
+                console.log(`Item ${i} is unknown type, using as-is:`, item);
+                processedOutput.push(item);
+              }
+            }
+          } else {
+            console.log('Processing single result...');
+            // Handle single result (not array)
+            if (result && typeof result === 'object' && typeof result.url === 'function') {
+              console.log('Single result is FileOutput, extracting URL...');
+              const urlString = result.url();
+              console.log('Extracted URL from single FileOutput:', urlString);
+              processedOutput = [urlString];
+            } else if (typeof result === 'string') {
+              console.log('Single result is direct string:', result);
+              processedOutput = [result];
+            } else {
+              console.log('Single result is other type, using as array:', result);
+              processedOutput = [result];
             }
           }
           
-          // Return in consistent format
+          console.log('Final processed output:', processedOutput);
+          
+          // Return in consistent format with processed URLs
           const response = {
             id: `${model.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`,
             status: 'succeeded',
-            output: Array.isArray(result) ? result : [result],
+            output: processedOutput,
             error: null
           };
           
