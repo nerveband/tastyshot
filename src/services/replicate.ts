@@ -6,26 +6,26 @@ const replicate = new Replicate({
 });
 
 export const replicateService = {
-  // Image editing using Qwen Image Edit model
+  // Image editing using SeedEdit 3.0
   editImage: async (
     imageUrl: string, 
     settings: ReplicateModelSettings
   ): Promise<ReplicateResponse> => {
     try {
+      console.log('Replicate editImage called with:', { imageUrl: imageUrl.substring(0, 50) + '...', settings });
+      
+      // Use SeedEdit 3.0 for text-guided image editing
       const prediction = await replicate.predictions.create({
-        version: "qwen/qwen-image-edit",
+        version: "bytedance/seededit-3.0",
         input: {
           image: imageUrl,
           prompt: settings.prompt,
-          aspect_ratio: settings.aspect_ratio || "1:1",
-          go_fast: settings.go_fast ?? true,
           seed: settings.seed,
-          output_format: settings.output_format || "webp",
-          output_quality: settings.output_quality || 80,
-          disable_safety_checker: settings.disable_safety_checker ?? false,
+          guidance_scale: settings.guidance_scale || 5.5, // Default from example
         },
-        stream: true,
       });
+
+      console.log('Replicate prediction created:', prediction);
 
       return {
         id: prediction.id,
@@ -36,25 +36,35 @@ export const replicateService = {
       };
     } catch (error) {
       console.error('Replicate API error:', error);
-      throw new Error(`Failed to process image: ${error}`);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      // More detailed error message
+      if (error instanceof Error) {
+        throw new Error(`Failed to process image: ${error.message}`);
+      } else {
+        throw new Error(`Failed to process image: ${JSON.stringify(error)}`);
+      }
     }
   },
 
-  // Image upscaling using Google upscaler
+  // Image upscaling using Real-ESRGAN
   upscaleImage: async (
     imageUrl: string, 
     settings: UpscaleSettings
   ): Promise<ReplicateResponse> => {
     try {
+      console.log('Replicate upscaleImage called with:', { imageUrl: imageUrl.substring(0, 50) + '...', settings });
+      
+      // Use Real-ESRGAN upscaler with correct version hash
       const prediction = await replicate.predictions.create({
-        version: "google/upscaler",
+        version: "nightmareai/real-esrgan:42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b",
         input: {
           image: imageUrl,
-          upscale_factor: settings.upscale_factor,
-          compression_quality: settings.compression_quality,
+          scale: settings.upscale_factor === 'x2' ? 2 : 4,
         },
-        stream: true,
       });
+
+      console.log('Replicate upscale prediction created:', prediction);
 
       return {
         id: prediction.id,
@@ -65,7 +75,13 @@ export const replicateService = {
       };
     } catch (error) {
       console.error('Replicate upscale error:', error);
-      throw new Error(`Failed to upscale image: ${error}`);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      if (error instanceof Error) {
+        throw new Error(`Failed to upscale image: ${error.message}`);
+      } else {
+        throw new Error(`Failed to upscale image: ${JSON.stringify(error)}`);
+      }
     }
   },
 
@@ -117,55 +133,55 @@ export const replicateService = {
     return eventSource;
   },
 
-  // Predefined editing prompts for the UI
+  // Predefined editing prompts for SeedEdit 3.0
   getEditingPresets: () => [
     {
       id: 'enhance',
       name: 'ENHANCE',
-      description: 'Improve colors and sharpness',
-      prompt: 'Enhance the image by improving colors, contrast, and sharpness while maintaining natural look',
+      description: 'Improve colors and lighting',
+      prompt: 'Improve the lighting and enhance the colors to make them more vibrant',
       icon: '✨',
       cost: 1,
     },
     {
       id: 'dramatic',
       name: 'DRAMATIC',
-      description: 'Add dramatic lighting and mood',
-      prompt: 'Transform this image with dramatic lighting, enhanced shadows and highlights for cinematic effect',
+      description: 'Add dramatic mood lighting',
+      prompt: 'Change the lighting to create a dramatic, cinematic mood with enhanced shadows',
       icon: '🎭',
       cost: 1,
     },
     {
       id: 'vintage',
       name: 'VINTAGE',
-      description: 'Apply vintage film aesthetic',
-      prompt: 'Apply a vintage film aesthetic with warm tones, subtle grain, and classic color grading',
+      description: 'Apply vintage film look',
+      prompt: 'Change the style to vintage film photography with warm sepia tones',
       icon: '📸',
       cost: 1,
     },
     {
       id: 'blackwhite',
       name: 'B&W',
-      description: 'Convert to artistic black and white',
-      prompt: 'Convert to stunning black and white with enhanced contrast and artistic tonal balance',
+      description: 'Convert to black and white',
+      prompt: 'Convert the image to black and white with high contrast',
       icon: '⚫',
       cost: 1,
     },
     {
       id: 'professional',
       name: 'PRO EDIT',
-      description: 'Professional photography edit',
-      prompt: 'Apply professional photography editing with color correction, exposure adjustment, and detail enhancement',
+      description: 'Professional studio lighting',
+      prompt: 'Change the lighting to professional studio lighting with perfect exposure',
       icon: '📷',
       cost: 2,
     },
     {
-      id: 'artistic',
-      name: 'ARTISTIC',
-      description: 'Creative artistic transformation',
-      prompt: 'Transform into an artistic masterpiece with enhanced colors, creative effects, and artistic interpretation',
-      icon: '🎨',
-      cost: 2,
+      id: 'sunset',
+      name: 'SUNSET',
+      description: 'Golden hour lighting',
+      prompt: 'Change the lighting to golden hour sunset lighting with warm tones',
+      icon: '🌅',
+      cost: 1,
     },
   ],
 };

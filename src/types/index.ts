@@ -22,12 +22,8 @@ export interface Photo {
 
 export interface ReplicateModelSettings {
   prompt: string;
-  aspect_ratio?: string;
-  go_fast?: boolean;
   seed?: number;
-  output_format?: string;
-  output_quality?: number;
-  disable_safety_checker?: boolean;
+  guidance_scale?: number; // SeedEdit 3.0 parameter for prompt adherence
 }
 
 export interface UpscaleSettings {

@@ -89,19 +89,56 @@ function App() {
     if (!error) return null;
 
     return (
-      <div className="fixed top-4 left-4 right-4 z-50 p-4 bg-red-900/90 border border-red-700 rounded-lg backdrop-blur-sm">
-        <div className="flex justify-between items-start">
+      <div style={{
+        position: 'fixed',
+        top: '16px',
+        left: '16px',
+        right: '16px',
+        zIndex: 50,
+        padding: '16px',
+        backgroundColor: 'rgba(127, 29, 29, 0.9)',
+        border: '1px solid rgb(185, 28, 28)',
+        borderRadius: '8px',
+        backdropFilter: 'blur(4px)'
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'flex-start' 
+        }}>
           <div>
-            <h3 className="font-bold text-white uppercase tracking-wider text-sm">
+            <h3 style={{ 
+              fontWeight: 'bold', 
+              color: 'white', 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.05em', 
+              fontSize: '14px' 
+            }}>
               ERROR
             </h3>
-            <p className="text-red-200 text-sm mt-1">{error}</p>
+            <p style={{ 
+              color: 'rgb(254, 202, 202)', 
+              fontSize: '14px', 
+              marginTop: '4px' 
+            }}>
+              {error}
+            </p>
           </div>
           <button
             onClick={() => setError(null)}
-            className="text-red-300 hover:text-red-100 transition-colors"
+            style={{
+              color: 'rgb(252, 165, 165)',
+              cursor: 'pointer',
+              background: 'none',
+              border: 'none',
+              fontSize: '18px',
+              padding: '0',
+              transition: 'color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'rgb(254, 226, 226)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'rgb(252, 165, 165)'}
           >
-            <span className="text-lg">×</span>
+            ×
           </button>
         </div>
       </div>
@@ -109,7 +146,10 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-tasty-black">
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: 'var(--color-tasty-black)' 
+    }}>
       {renderError()}
       
       {currentView === 'camera' && (
@@ -138,9 +178,27 @@ function App() {
       {currentView === 'camera' && (
         <button
           onClick={goToHistory}
-          className="fixed bottom-6 left-6 w-14 h-14 bg-tasty-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-tasty-white/30 hover:bg-tasty-white/30 transition-colors z-40"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '24px',
+            width: '56px',
+            height: '56px',
+            backgroundColor: 'rgba(245, 245, 245, 0.2)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1px solid rgba(245, 245, 245, 0.3)',
+            cursor: 'pointer',
+            zIndex: 40,
+            transition: 'background-color 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(245, 245, 245, 0.3)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(245, 245, 245, 0.2)'}
         >
-          <span className="text-tasty-white text-xl">📁</span>
+          <span style={{ color: 'var(--color-tasty-white)', fontSize: '20px' }}>📁</span>
         </button>
       )}
     </div>

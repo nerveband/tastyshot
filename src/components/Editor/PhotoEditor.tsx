@@ -36,9 +36,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     clearError();
     const settings: ReplicateModelSettings = {
       prompt: preset.prompt,
-      go_fast: true,
-      output_format: 'webp',
-      output_quality: 90,
+      guidance_scale: 5.5, // Good balance for most edits
     };
 
     const result = await editImage(originalImage, settings, (output) => {
@@ -58,9 +56,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     clearError();
     const settings: ReplicateModelSettings = {
       prompt: customPrompt,
-      go_fast: true,
-      output_format: 'webp',
-      output_quality: 90,
+      guidance_scale: 5.5,
     };
 
     const result = await editImage(originalImage, settings);

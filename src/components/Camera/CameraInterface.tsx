@@ -52,11 +52,25 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
 
   if (!isSupported) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-tasty-black text-tasty-white">
-        <div className="text-center p-8">
-          <div className="text-6xl mb-4">📱</div>
-          <h2 className="text-2xl font-bold mb-2">CAMERA NOT SUPPORTED</h2>
-          <p className="text-tasty-white/70">
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '100vh',
+        backgroundColor: 'var(--color-tasty-black)',
+        color: 'var(--color-tasty-white)'
+      }}>
+        <div style={{ textAlign: 'center', padding: '32px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📱</div>
+          <h2 style={{ 
+            fontSize: '24px', 
+            fontWeight: 'bold', 
+            marginBottom: '8px',
+            textTransform: 'uppercase'
+          }}>
+            CAMERA NOT SUPPORTED
+          </h2>
+          <p style={{ color: 'rgba(245, 245, 245, 0.7)' }}>
             Your device doesn't support camera access.
           </p>
         </div>
@@ -66,17 +80,17 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
 
   return (
     <div style={{ 
-      height: '100vh',
-      width: '100vw',
-      backgroundColor: 'var(--color-tasty-black)', 
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
       position: 'fixed',
       top: 0,
       left: 0,
       right: 0,
-      bottom: 0
+      bottom: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'var(--color-tasty-black)', 
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
     }}>
       {/* Header */}
       <div style={{
