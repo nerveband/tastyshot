@@ -238,29 +238,82 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
         </div>
 
         {/* Custom Prompt */}
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <button
             onClick={() => setShowCustomPrompt(!showCustomPrompt)}
-            className="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-left font-bold uppercase tracking-wider text-sm hover:bg-gray-700 transition-colors"
+            style={{
+              width: '100%',
+              padding: '12px',
+              backgroundColor: 'rgb(31, 41, 55)',
+              border: '1px solid rgb(75, 85, 99)',
+              borderRadius: '8px',
+              textAlign: 'left',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              fontSize: '14px',
+              color: 'var(--color-tasty-white)',
+              cursor: 'pointer',
+              transition: 'background-color 0.15s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgb(55, 65, 81)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgb(31, 41, 55)'}
           >
             {showCustomPrompt ? '✕ HIDE CUSTOM PROMPT' : '+ CUSTOM PROMPT'}
           </button>
 
           {showCustomPrompt && (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <textarea
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
-                placeholder="Describe how you want to edit your photo..."
-                className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg text-tasty-white placeholder-tasty-white/50 resize-none"
-                rows={3}
+                placeholder="Describe how you want to edit your photo... (e.g., 'Make the lighting warmer and more golden', 'Convert to black and white', 'Add dramatic shadows')"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: 'rgb(17, 24, 39)',
+                  border: '1px solid rgb(55, 65, 81)',
+                  borderRadius: '8px',
+                  color: 'var(--color-tasty-white)',
+                  fontSize: '14px',
+                  resize: 'none',
+                  outline: 'none',
+                  fontFamily: 'inherit'
+                }}
+                rows={4}
+                onFocus={(e) => e.target.style.borderColor = 'var(--color-tasty-yellow)'}
+                onBlur={(e) => e.target.style.borderColor = 'rgb(55, 65, 81)'}
               />
               <button
                 onClick={handleCustomEdit}
                 disabled={isProcessing || !customPrompt.trim()}
-                className="btn-primary w-full disabled:opacity-50"
+                style={{
+                  width: '100%',
+                  padding: '14px 20px',
+                  background: 'var(--gradient-tasty)',
+                  color: 'var(--color-tasty-black)',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: isProcessing || !customPrompt.trim() ? 'not-allowed' : 'pointer',
+                  opacity: isProcessing || !customPrompt.trim() ? 0.5 : 1,
+                  transition: 'all 0.15s',
+                  fontSize: '14px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isProcessing && customPrompt.trim()) {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
-                APPLY CUSTOM EDIT
+                {isProcessing ? 'PROCESSING...' : 'APPLY CUSTOM EDIT'}
               </button>
             </div>
           )}
@@ -268,22 +321,79 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
 
         {/* Upscaling Options */}
         {editedImage && (
-          <div className="mt-4 pt-4 border-t border-gray-700">
-            <h3 className="font-bold uppercase tracking-wider text-sm mb-3">
+          <div style={{
+            marginTop: '16px',
+            paddingTop: '16px',
+            borderTop: '1px solid rgb(55, 65, 81)'
+          }}>
+            <h3 style={{
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              fontSize: '14px',
+              color: 'var(--color-tasty-white)',
+              marginBottom: '12px'
+            }}>
               ENHANCE QUALITY
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '12px'
+            }}>
               <button
                 onClick={() => handleUpscale('x2')}
                 disabled={isProcessing}
-                className="btn-secondary disabled:opacity-50"
+                style={{
+                  padding: '12px 16px',
+                  backgroundColor: 'rgba(245, 245, 245, 0.1)',
+                  border: '1px solid rgba(245, 245, 245, 0.2)',
+                  borderRadius: '8px',
+                  color: 'var(--color-tasty-white)',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  fontSize: '14px',
+                  cursor: isProcessing ? 'not-allowed' : 'pointer',
+                  opacity: isProcessing ? 0.5 : 1,
+                  transition: 'all 0.15s'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isProcessing) {
+                    e.currentTarget.style.backgroundColor = 'rgba(245, 245, 245, 0.2)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(245, 245, 245, 0.1)';
+                }}
               >
                 UPSCALE 2X
               </button>
               <button
                 onClick={() => handleUpscale('x4')}
                 disabled={isProcessing}
-                className="btn-secondary disabled:opacity-50"
+                style={{
+                  padding: '12px 16px',
+                  backgroundColor: 'rgba(245, 245, 245, 0.1)',
+                  border: '1px solid rgba(245, 245, 245, 0.2)',
+                  borderRadius: '8px',
+                  color: 'var(--color-tasty-white)',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  fontSize: '14px',
+                  cursor: isProcessing ? 'not-allowed' : 'pointer',
+                  opacity: isProcessing ? 0.5 : 1,
+                  transition: 'all 0.15s'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isProcessing) {
+                    e.currentTarget.style.backgroundColor = 'rgba(245, 245, 245, 0.2)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(245, 245, 245, 0.1)';
+                }}
               >
                 UPSCALE 4X
               </button>
