@@ -160,30 +160,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
         
         <h1 className="font-bold text-lg uppercase tracking-widest">EDIT PHOTO</h1>
         
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => setComparisonMode(!comparisonMode)}
-            className="text-sm font-bold uppercase tracking-wider transition-colors"
-            style={{
-              color: comparisonMode ? 'var(--color-tasty-yellow)' : 'var(--color-tasty-white)',
-            }}
-          >
-            {comparisonMode ? 'COMPARE ON' : 'COMPARE OFF'}
-          </button>
-          
-          {/* Save Button */}
-          <button
-            onClick={handleSave}
-            className="flex items-center space-x-2 px-3 py-2 bg-tasty-yellow hover:bg-tasty-orange text-tasty-black font-bold uppercase tracking-wider rounded-lg transition-all transform hover:scale-105"
-            style={{
-              background: 'var(--gradient-tasty)',
-              boxShadow: '0 2px 8px rgba(255, 215, 0, 0.3)'
-            }}
-          >
-            <Download size={18} />
-            <span className="hidden sm:inline">SAVE</span>
-          </button>
-        </div>
+        <div></div>
       </div>
 
       {/* Image Display */}
@@ -258,6 +235,36 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
               />
             </div>
           )}
+        </div>
+
+        {/* Compare Toggle Switch - Positioned beneath photo */}
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => setComparisonMode(!comparisonMode)}
+            className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all font-bold text-sm uppercase tracking-wider"
+            style={{
+              backgroundColor: comparisonMode ? 'rgba(255, 215, 0, 0.1)' : 'rgba(245, 245, 245, 0.1)',
+              border: `1px solid ${comparisonMode ? 'var(--color-tasty-yellow)' : 'rgba(245, 245, 245, 0.2)'}`,
+              color: comparisonMode ? 'var(--color-tasty-yellow)' : 'var(--color-tasty-white)',
+            }}
+          >
+            <div
+              className="w-4 h-2 rounded-full transition-all"
+              style={{
+                backgroundColor: comparisonMode ? 'var(--color-tasty-yellow)' : 'rgba(245, 245, 245, 0.3)',
+                position: 'relative'
+              }}
+            >
+              <div
+                className="w-2 h-2 rounded-full bg-white transition-all absolute top-0"
+                style={{
+                  left: comparisonMode ? '8px' : '0px',
+                  transform: 'translateY(-1px)'
+                }}
+              />
+            </div>
+            <span>{comparisonMode ? 'COMPARE ON' : 'COMPARE OFF'}</span>
+          </button>
         </div>
 
         {/* Mobile-First Save Action */}
