@@ -127,34 +127,57 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             </div>
 
             {/* Bottom Controls */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-tasty-black/90 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-tasty-black/90 to-transparent" style={{ zIndex: 1000 }}>
               <div className="flex items-center justify-between">
                 {/* Gallery/History button */}
-                <button className="w-12 h-12 rounded-lg bg-tasty-white/20 backdrop-blur-sm flex items-center justify-center">
+                <button 
+                  className="w-16 h-16 rounded-lg bg-tasty-white/20 backdrop-blur-sm flex items-center justify-center active:bg-tasty-white/40 touch-manipulation"
+                  style={{ 
+                    minHeight: '44px', 
+                    minWidth: '44px',
+                    WebkitTapHighlightColor: 'transparent',
+                    touchAction: 'manipulation'
+                  }}
+                >
                   <span className="text-tasty-white text-xl">📁</span>
                 </button>
 
                 {/* Capture button */}
                 <button
                   onClick={handleCapturePhoto}
+                  onTouchStart={() => {}} // Ensure touch events work on iOS
                   disabled={isLoading}
-                  className="relative w-20 h-20 rounded-full bg-tasty-white border-4 border-tasty-black shadow-lg hover:scale-105 transition-transform duration-200 disabled:opacity-50"
+                  className="relative w-24 h-24 rounded-full bg-tasty-white border-4 border-tasty-black shadow-lg active:scale-95 transition-transform duration-150 disabled:opacity-50 touch-manipulation"
+                  style={{ 
+                    minHeight: '96px', 
+                    minWidth: '96px',
+                    WebkitTapHighlightColor: 'transparent',
+                    touchAction: 'manipulation',
+                    zIndex: 1001
+                  }}
                 >
-                  <div className="absolute inset-2 rounded-full bg-tasty-gradient"></div>
+                  <div className="absolute inset-2 rounded-full bg-tasty-gradient pointer-events-none"></div>
                 </button>
 
                 {/* Camera switch button */}
                 <button
                   onClick={switchCamera}
+                  onTouchStart={() => {}} // Ensure touch events work on iOS
                   disabled={isLoading}
-                  className="w-12 h-12 rounded-lg bg-tasty-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-tasty-white/30 transition-colors disabled:opacity-50"
+                  className="w-16 h-16 rounded-lg bg-tasty-white/20 backdrop-blur-sm flex items-center justify-center active:bg-tasty-white/40 transition-colors disabled:opacity-50 touch-manipulation"
+                  style={{ 
+                    minHeight: '44px', 
+                    minWidth: '44px',
+                    WebkitTapHighlightColor: 'transparent',
+                    touchAction: 'manipulation'
+                  }}
                 >
                   <span className="text-tasty-white text-xl">🔄</span>
                 </button>
               </div>
 
               {/* Instructions */}
-              <div className="mt-4 text-center">
+              <div className="mt-4 text-center pointer-events-none">
                 <p className="text-tasty-white/70 text-sm uppercase tracking-wider">
                   TAP TO CAPTURE
                 </p>

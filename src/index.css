@@ -25,6 +25,11 @@
     margin: 0;
     min-height: 100vh;
     overflow-x: hidden;
+    /* iOS-specific optimizations */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   * {
@@ -94,4 +99,30 @@
   .text-tasty-orange { color: var(--color-tasty-orange); }
   .text-tasty-yellow { color: var(--color-tasty-yellow); }
   .bg-tasty-gradient { background: var(--gradient-tasty); }
+
+  /* Mobile-optimized touch targets */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* iOS-specific button optimizations */
+  button {
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+  }
+
+  /* Prevent zoom on iOS when focusing inputs */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* Video element optimizations for mobile */
+  video {
+    -webkit-playsinline: true;
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
 }

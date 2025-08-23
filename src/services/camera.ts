@@ -6,12 +6,13 @@ export class CameraService {
   
   // iOS-optimized camera constraints
   private getConstraints(facingMode: 'user' | 'environment' = 'environment'): CameraConstraints {
+    // Use flexible constraints that work better on iOS
     return {
       video: {
-        facingMode,
-        width: 1280,
-        height: 720,
-        frameRate: 30,
+        facingMode: { ideal: facingMode },
+        width: { ideal: 1280, max: 1920 },
+        height: { ideal: 720, max: 1080 },
+        frameRate: { ideal: 30, max: 60 },
       },
     };
   }
@@ -30,11 +31,14 @@ export class CameraService {
       // Request camera access
       this.stream = await navigator.mediaDevices.getUserMedia(constraints);
       
-      // Configure video element
+      // Configure video element with iOS optimizations
       videoElement.srcObject = this.stream;
       videoElement.autoplay = true;
       videoElement.playsInline = true; // Critical for iOS
       videoElement.muted = true; // Prevent audio issues
+      videoElement.setAttribute('webkit-playsinline', 'true'); // Legacy iOS support
+      videoElement.setAttribute('playsinline', 'true'); // Modern iOS support
+      videoElement.controls = false; // Hide native controls
       
       this.videoElement = videoElement;
 

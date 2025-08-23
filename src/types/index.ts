@@ -38,10 +38,10 @@ export interface UpscaleSettings {
 // Camera types
 export interface CameraConstraints {
   video: {
-    facingMode: 'user' | 'environment';
-    width: number;
-    height: number;
-    frameRate?: number;
+    facingMode: 'user' | 'environment' | { ideal: 'user' | 'environment' };
+    width: number | { ideal: number; max?: number };
+    height: number | { ideal: number; max?: number };
+    frameRate?: number | { ideal: number; max?: number };
   };
 }
 
