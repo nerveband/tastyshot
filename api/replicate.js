@@ -105,7 +105,7 @@ export default async function handler(req, res) {
           
           console.log('Final input being sent to Replicate:', JSON.stringify(input, null, 2));
           
-          result = await replicate.run(model, { input });
+          result = await replicate.run(model, input);
           
           const endTime = Date.now();
           console.log('Replicate.run completed in', endTime - startTime, 'ms');
