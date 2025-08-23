@@ -89,12 +89,13 @@ export const replicateService = {
       case 'flux-kontext-pro':
         const fluxKontextSettings = settings as FluxKontextSettings;
         return {
-          ...baseInput,
           prompt: fluxKontextSettings.prompt || "Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.",
           input_image: imageUrl,
           aspect_ratio: "match_input_image",
           output_format: "jpg",
           safety_tolerance: 2,
+          seed: settings.seed || Math.floor(Math.random() * 1000000),
+          prompt_upsampling: false, // Keep false to maintain user's exact prompt
         };
 
       case 'flux-krea-dev':
