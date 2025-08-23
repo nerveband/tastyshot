@@ -24,6 +24,8 @@ export interface ReplicateModelSettings {
   prompt: string;
   seed?: number;
   guidance_scale?: number; // SeedEdit 3.0 parameter for prompt adherence
+  negative_prompt?: string; // SeedEdit 3.0 parameter for what to avoid
+  num_inference_steps?: number; // SeedEdit 3.0 parameter for quality vs speed
 }
 
 export interface UpscaleSettings {

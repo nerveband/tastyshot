@@ -7,53 +7,26 @@ export const useReplicate = () => {
   const [progress, setProgress] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Edit image with streaming updates
+  // Edit image using Replicate API
   const editImage = useCallback(async (
     imageUrl: string,
-    settings: ReplicateModelSettings,
-    onProgress?: (output: string) => void
+    settings: ReplicateModelSettings
   ): Promise<string | null> => {
     setIsProcessing(true);
     setProgress([]);
     setError(null);
 
     try {
-      const prediction = await replicateService.editImage(imageUrl, settings);
+      const result = await replicateService.editImage(imageUrl, settings);
       
-      if (prediction.urls?.stream) {
-        // Stream the results
-        return new Promise((resolve, reject) => {
-          const eventSource = replicateService.streamPrediction(
-            prediction.urls!.stream!,
-            (output) => {
-              setProgress(prev => [...prev, output]);
-              onProgress?.(output);
-            },
-            (error) => {
-              setError(error);
-              setIsProcessing(false);
-              reject(new Error(error));
-            },
-            (result) => {
-              setIsProcessing(false);
-              if (result && result.output && result.output.length > 0) {
-                resolve(result.output[0]);
-              } else {
-                reject(new Error('No output received'));
-              }
-            }
-          );
-
-          // Cleanup on timeout
-          setTimeout(() => {
-            eventSource.close();
-            setIsProcessing(false);
-            reject(new Error('Processing timeout'));
-          }, 60000); // 1 minute timeout
-        });
+      // Since we're using replicate.run() on the server, the result is already complete
+      if (result.status === 'succeeded' && result.output && result.output.length > 0) {
+        setIsProcessing(false);
+        return result.output[0];
+      } else if (result.error) {
+        throw new Error(result.error);
       } else {
-        // Fallback: poll for results
-        return await pollForResult(prediction.id);
+        throw new Error('No output received from model');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Processing failed');
@@ -71,8 +44,17 @@ export const useReplicate = () => {
     setError(null);
 
     try {
-      const prediction = await replicateService.upscaleImage(imageUrl, settings);
-      return await pollForResult(prediction.id);
+      const result = await replicateService.upscaleImage(imageUrl, settings);
+      
+      // Since we're using replicate.run() on the server, the result is already complete
+      if (result.status === 'succeeded' && result.output && result.output.length > 0) {
+        setIsProcessing(false);
+        return result.output[0];
+      } else if (result.error) {
+        throw new Error(result.error);
+      } else {
+        throw new Error('No output received from upscaler');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upscaling failed');
       setIsProcessing(false);
@@ -80,37 +62,8 @@ export const useReplicate = () => {
     }
   }, []);
 
-  // Poll for prediction result
-  const pollForResult = async (predictionId: string): Promise<string | null> => {
-    const maxAttempts = 30; // 5 minutes max
-    let attempts = 0;
-
-    while (attempts < maxAttempts) {
-      try {
-        const prediction = await replicateService.getPrediction(predictionId);
-        
-        if (prediction.status === 'succeeded') {
-          setIsProcessing(false);
-          return prediction.output?.[0] || null;
-        } else if (prediction.status === 'failed') {
-          setIsProcessing(false);
-          throw new Error(prediction.error || 'Processing failed');
-        }
-        
-        // Wait 10 seconds before next poll
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        attempts++;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Polling failed');
-        setIsProcessing(false);
-        return null;
-      }
-    }
-
-    setError('Processing timeout');
-    setIsProcessing(false);
-    return null;
-  };
+  // Note: Polling is no longer needed since we use replicate.run() on the server
+  // which waits for completion before returning the result
 
   // Clear error
   const clearError = useCallback(() => {

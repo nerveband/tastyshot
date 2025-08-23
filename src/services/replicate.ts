@@ -1,59 +1,57 @@
-import Replicate from 'replicate';
 import type { ReplicateModelSettings, UpscaleSettings, ReplicateResponse } from '../types';
 
-const replicate = new Replicate({
-  auth: import.meta.env.VITE_REPLICATE_API_TOKEN,
-});
-
 export const replicateService = {
-  // Image editing using Stable Diffusion (known working model)
+  // Image editing using SeedEdit 3.0 model via server-side API
   editImage: async (
     imageUrl: string, 
     settings: ReplicateModelSettings
   ): Promise<ReplicateResponse> => {
     try {
-      // Validate API token
-      const apiToken = import.meta.env.VITE_REPLICATE_API_TOKEN;
-      if (!apiToken) {
-        throw new Error('Replicate API token is missing. Check VITE_REPLICATE_API_TOKEN environment variable.');
-      }
-      
-      console.log('Replicate editImage called with:');
+      console.log('Client-side editImage called with:');
       console.log('- Image URL type:', typeof imageUrl);
       console.log('- Image URL length:', imageUrl.length);
       console.log('- Image URL starts with:', imageUrl.substring(0, 30));
       console.log('- Settings:', settings);
-      console.log('- API Token exists and starts with:', apiToken.substring(0, 8) + '...');
       
       // Validate image data
       if (!imageUrl || typeof imageUrl !== 'string') {
         throw new Error('Invalid image data provided');
       }
       
-      // First test with simple upscaler to verify API connection works
-      const prediction = await replicate.predictions.create({
-        version: "nightmareai/real-esrgan:42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b",
-        input: {
-          image: imageUrl,
-          scale: 2, // Just upscale 2x for now
+      // Call our serverless API route instead of Replicate directly
+      const response = await fetch('/api/replicate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          action: 'run',
+          model: 'bytedance/seededit-3.0',
+          input: {
+            image: imageUrl,
+            prompt: settings.prompt || "Enhance the image quality and improve lighting",
+            negative_prompt: settings.negative_prompt || "blurry, low quality, distorted",
+            guidance_scale: settings.guidance_scale || 7.5,
+            num_inference_steps: settings.num_inference_steps || 20,
+            seed: settings.seed || Math.floor(Math.random() * 1000000),
+          }
+        })
       });
 
-      console.log('Replicate prediction created successfully:', prediction);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(`Server error: ${response.status} - ${errorData.error || errorData.details || 'Unknown error'}`);
+      }
 
-      return {
-        id: prediction.id,
-        status: prediction.status as any,
-        urls: prediction.urls,
-        output: prediction.output as string[],
-        error: prediction.error as string,
-      };
+      const result = await response.json();
+      console.log('Server-side SeedEdit 3.0 result:', result);
+
+      return result;
     } catch (error: any) {
-      console.error('Replicate API error:', error);
+      console.error('Client-side Replicate error:', error);
       console.error('Error name:', error?.name);
       console.error('Error message:', error?.message);
       console.error('Error stack:', error?.stack);
-      console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
       
       // Try to extract more specific error information
       let errorMessage = 'Unknown error';
@@ -69,34 +67,41 @@ export const replicateService = {
     }
   },
 
-  // Image upscaling using Real-ESRGAN
+  // Image upscaling using Real-ESRGAN via server-side API
   upscaleImage: async (
     imageUrl: string, 
     settings: UpscaleSettings
   ): Promise<ReplicateResponse> => {
     try {
-      console.log('Replicate upscaleImage called with:', { imageUrl: imageUrl.substring(0, 50) + '...', settings });
+      console.log('Client-side upscaleImage called with:', { imageUrl: imageUrl.substring(0, 50) + '...', settings });
       
-      // Use Real-ESRGAN upscaler with correct version hash
-      const prediction = await replicate.predictions.create({
-        version: "nightmareai/real-esrgan:42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b",
-        input: {
-          image: imageUrl,
-          scale: settings.upscale_factor === 'x2' ? 2 : 4,
+      // Call our serverless API route for upscaling
+      const response = await fetch('/api/replicate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          action: 'run',
+          model: 'nightmareai/real-esrgan:42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b',
+          input: {
+            image: imageUrl,
+            scale: settings.upscale_factor === 'x2' ? 2 : 4,
+          }
+        })
       });
 
-      console.log('Replicate upscale prediction created:', prediction);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(`Server error: ${response.status} - ${errorData.error || errorData.details || 'Unknown error'}`);
+      }
 
-      return {
-        id: prediction.id,
-        status: prediction.status as any,
-        urls: prediction.urls,
-        output: prediction.output as string[],
-        error: prediction.error as string,
-      };
+      const result = await response.json();
+      console.log('Server-side upscale result:', result);
+
+      return result;
     } catch (error: any) {
-      console.error('Replicate upscale error:', error);
+      console.error('Client-side upscale error:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
       
       if (error instanceof Error) {
@@ -107,18 +112,27 @@ export const replicateService = {
     }
   },
 
-  // Get prediction status
+  // Get prediction status via server-side API
   getPrediction: async (predictionId: string): Promise<ReplicateResponse> => {
     try {
-      const prediction = await replicate.predictions.get(predictionId);
-      
-      return {
-        id: prediction.id,
-        status: prediction.status as any,
-        urls: prediction.urls,
-        output: prediction.output as string[],
-        error: prediction.error as string,
-      };
+      const response = await fetch('/api/replicate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'get',
+          input: { id: predictionId }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(`Server error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+      }
+
+      const result = await response.json();
+      return result;
     } catch (error: any) {
       console.error('Failed to get prediction:', error);
       throw new Error(`Failed to get prediction status: ${error}`);

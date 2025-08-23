@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['vite.svg', 'apple-touch-icon.png', 'app-icon.png'],
       manifest: {
         name: 'Tasty Shot - AI Photo Editor',
         short_name: 'TastyShot',

@@ -39,9 +39,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
       guidance_scale: 5.5, // Good balance for most edits
     };
 
-    const result = await editImage(originalImage, settings, (output) => {
-      console.log('Processing progress:', output);
-    });
+    const result = await editImage(originalImage, settings);
 
     if (result) {
       setEditedImage(result);
