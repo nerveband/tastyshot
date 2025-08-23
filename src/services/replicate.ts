@@ -6,26 +6,40 @@ const replicate = new Replicate({
 });
 
 export const replicateService = {
-  // Image editing using SeedEdit 3.0
+  // Image editing using Stable Diffusion (known working model)
   editImage: async (
     imageUrl: string, 
     settings: ReplicateModelSettings
   ): Promise<ReplicateResponse> => {
     try {
-      console.log('Replicate editImage called with:', { imageUrl: imageUrl.substring(0, 50) + '...', settings });
+      // Validate API token
+      const apiToken = import.meta.env.VITE_REPLICATE_API_TOKEN;
+      if (!apiToken) {
+        throw new Error('Replicate API token is missing. Check VITE_REPLICATE_API_TOKEN environment variable.');
+      }
       
-      // Use SeedEdit 3.0 for text-guided image editing
+      console.log('Replicate editImage called with:');
+      console.log('- Image URL type:', typeof imageUrl);
+      console.log('- Image URL length:', imageUrl.length);
+      console.log('- Image URL starts with:', imageUrl.substring(0, 30));
+      console.log('- Settings:', settings);
+      console.log('- API Token exists and starts with:', apiToken.substring(0, 8) + '...');
+      
+      // Validate image data
+      if (!imageUrl || typeof imageUrl !== 'string') {
+        throw new Error('Invalid image data provided');
+      }
+      
+      // First test with simple upscaler to verify API connection works
       const prediction = await replicate.predictions.create({
-        version: "bytedance/seededit-3.0",
+        version: "nightmareai/real-esrgan:42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b",
         input: {
           image: imageUrl,
-          prompt: settings.prompt,
-          seed: settings.seed,
-          guidance_scale: settings.guidance_scale || 5.5, // Default from example
+          scale: 2, // Just upscale 2x for now
         },
       });
 
-      console.log('Replicate prediction created:', prediction);
+      console.log('Replicate prediction created successfully:', prediction);
 
       return {
         id: prediction.id,
@@ -34,16 +48,24 @@ export const replicateService = {
         output: prediction.output as string[],
         error: prediction.error as string,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Replicate API error:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
+      console.error('Error name:', error?.name);
+      console.error('Error message:', error?.message);
+      console.error('Error stack:', error?.stack);
+      console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
       
-      // More detailed error message
+      // Try to extract more specific error information
+      let errorMessage = 'Unknown error';
       if (error instanceof Error) {
-        throw new Error(`Failed to process image: ${error.message}`);
-      } else {
-        throw new Error(`Failed to process image: ${JSON.stringify(error)}`);
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object') {
+        errorMessage = JSON.stringify(error);
       }
+      
+      throw new Error(`Image processing failed: ${errorMessage}`);
     }
   },
 
@@ -73,7 +95,7 @@ export const replicateService = {
         output: prediction.output as string[],
         error: prediction.error as string,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Replicate upscale error:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
       
@@ -97,7 +119,7 @@ export const replicateService = {
         output: prediction.output as string[],
         error: prediction.error as string,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get prediction:', error);
       throw new Error(`Failed to get prediction status: ${error}`);
     }
