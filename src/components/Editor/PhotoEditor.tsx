@@ -41,7 +41,12 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
 
     const result = await editImage(originalImage, settings);
 
+    console.log('PhotoEditor - editImage result:', result);
+    console.log('PhotoEditor - result type:', typeof result);
+    console.log('PhotoEditor - result length:', result?.length);
+    
     if (result) {
+      console.log('PhotoEditor - setting edited image to:', result);
       setEditedImage(result);
       onEditComplete(result);
     }
@@ -59,7 +64,11 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
 
     const result = await editImage(originalImage, settings);
 
+    console.log('PhotoEditor - custom editImage result:', result);
+    console.log('PhotoEditor - custom result type:', typeof result);
+    
     if (result) {
+      console.log('PhotoEditor - setting custom edited image to:', result);
       setEditedImage(result);
       onEditComplete(result);
     }

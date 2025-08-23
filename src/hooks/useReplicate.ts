@@ -19,10 +19,19 @@ export const useReplicate = () => {
     try {
       const result = await replicateService.editImage(imageUrl, settings);
       
+      console.log('useReplicate - editImage service result:', result);
+      console.log('useReplicate - result.status:', result.status);
+      console.log('useReplicate - result.output:', result.output);
+      console.log('useReplicate - result.output[0]:', result.output?.[0]);
+      
       // Since we're using replicate.run() on the server, the result is already complete
       if (result.status === 'succeeded' && result.output && result.output.length > 0) {
         setIsProcessing(false);
-        return result.output[0];
+        const editedImageUrl = result.output[0];
+        console.log('useReplicate - returning edited image URL:', editedImageUrl);
+        console.log('useReplicate - URL type:', typeof editedImageUrl);
+        console.log('useReplicate - URL length:', editedImageUrl?.length);
+        return editedImageUrl;
       } else if (result.error) {
         throw new Error(result.error);
       } else {
