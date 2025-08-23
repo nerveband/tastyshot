@@ -236,6 +236,24 @@ export const replicateService = {
   // Get available AI models
   getAvailableModels: (): AIModel[] => [
     {
+      id: 'seededit-30',
+      name: 'SeedEdit 3.0',
+      description: 'Fast and high-quality generative image editing preserving details while making targeted edits',
+      provider: 'ByteDance',
+      category: 'image-editing',
+      replicateModel: 'bytedance/seededit-3.0',
+      supportedInputs: ['camera', 'upload'],
+      defaultSettings: {
+        prompt: 'Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.',
+        guidance_scale: 5.5,
+        num_inference_steps: 25,
+        width: 1024,
+        height: 1024,
+      } as FluxKontextSettings,
+      estimatedTime: '20-30 seconds',
+      cost: 2,
+    },
+    {
       id: 'flux-kontext-max',
       name: 'Flux Kontext Max',
       description: 'Premium text-based image editing with maximum performance and enhanced typography',
@@ -288,24 +306,6 @@ export const replicateService = {
       } as FluxKontextSettings,
       estimatedTime: '45-75 seconds',
       cost: 3,
-    },
-    {
-      id: 'seededit-30',
-      name: 'SeedEdit 3.0',
-      description: 'Fast and high-quality generative image editing preserving details while making targeted edits',
-      provider: 'ByteDance',
-      category: 'image-editing',
-      replicateModel: 'bytedance/seededit-3.0',
-      supportedInputs: ['camera', 'upload'],
-      defaultSettings: {
-        prompt: 'Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.',
-        guidance_scale: 5.5,
-        num_inference_steps: 25,
-        width: 1024,
-        height: 1024,
-      } as FluxKontextSettings,
-      estimatedTime: '20-30 seconds',
-      cost: 2,
     },
     {
       id: 'qwen-image-edit',
