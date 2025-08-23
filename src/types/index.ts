@@ -20,12 +20,50 @@ export interface Photo {
   updated_at: string;
 }
 
-export interface ReplicateModelSettings {
+// Base model settings interface
+export interface BaseModelSettings {
   prompt: string;
   seed?: number;
-  guidance_scale?: number; // SeedEdit 3.0 parameter for prompt adherence
-  negative_prompt?: string; // SeedEdit 3.0 parameter for what to avoid
-  num_inference_steps?: number; // SeedEdit 3.0 parameter for quality vs speed
+}
+
+// SeedEdit 3.0 specific settings
+export interface SeedEditSettings extends BaseModelSettings {
+  guidance_scale?: number;
+  negative_prompt?: string;
+  num_inference_steps?: number;
+}
+
+// Flux Kontext settings
+export interface FluxKontextSettings extends BaseModelSettings {
+  negative_prompt?: string;
+  num_inference_steps?: number;
+  guidance_scale?: number;
+  width?: number;
+  height?: number;
+}
+
+// Qwen Image Edit settings
+export interface QwenImageEditSettings extends BaseModelSettings {
+  num_inference_steps?: number;
+  guidance_scale?: number;
+}
+
+// Union type for all model settings
+export type ReplicateModelSettings = SeedEditSettings | FluxKontextSettings | QwenImageEditSettings;
+
+// Model information interface
+export interface AIModel {
+  id: string;
+  name: string;
+  description: string;
+  provider: string;
+  category: 'image-editing' | 'image-generation' | 'upscaling';
+  replicateModel: string; // The actual model identifier for Replicate API
+  supportedInputs: ('camera' | 'upload')[];
+  defaultSettings: ReplicateModelSettings;
+  maxImageSize?: number;
+  estimatedTime?: string;
+  cost: number;
 }
 
 export interface UpscaleSettings {

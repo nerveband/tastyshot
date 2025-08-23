@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./assets/fonts.css";
 
 /* Force Tailwind to include these classes */
 @layer utilities {
@@ -155,7 +156,7 @@
   }
 
   html {
-    font-family: 'Arial', 'Helvetica', sans-serif;
+    font-family: 'Brandon Grotesque', 'Arial', 'Helvetica', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -163,7 +164,7 @@
   body {
     background-color: var(--color-tasty-black);
     color: var(--color-tasty-white);
-    font-family: 'Arial', 'Helvetica', sans-serif;
+    font-family: 'Brandon Grotesque', 'Arial', 'Helvetica', sans-serif;
     margin: 0;
     min-height: 100vh;
     overflow-x: hidden;

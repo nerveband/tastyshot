@@ -156,6 +156,7 @@ function App() {
         <CameraInterface
           onPhotoCapture={handlePhotoCapture}
           onError={handleError}
+          onHistoryClick={goToHistory}
         />
       )}
       
@@ -174,33 +175,6 @@ function App() {
         />
       )}
 
-      {/* Floating Action Button for History (only on camera view) */}
-      {currentView === 'camera' && (
-        <button
-          onClick={goToHistory}
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            left: '24px',
-            width: '56px',
-            height: '56px',
-            backgroundColor: 'rgba(245, 245, 245, 0.2)',
-            backdropFilter: 'blur(4px)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '1px solid rgba(245, 245, 245, 0.3)',
-            cursor: 'pointer',
-            zIndex: 40,
-            transition: 'background-color 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(245, 245, 245, 0.3)'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(245, 245, 245, 0.2)'}
-        >
-          <span style={{ color: 'var(--color-tasty-white)', fontSize: '20px' }}>📁</span>
-        </button>
-      )}
     </div>
   );
 }

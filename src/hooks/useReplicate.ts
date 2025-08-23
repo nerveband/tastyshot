@@ -1,14 +1,15 @@
 import { useState, useCallback } from 'react';
 import { replicateService } from '../services/replicate';
-import type { ReplicateModelSettings, UpscaleSettings } from '../types';
+import type { AIModel, ReplicateModelSettings, UpscaleSettings } from '../types';
 
 export const useReplicate = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Edit image using Replicate API
-  const editImage = useCallback(async (
+  // Run model using Replicate API
+  const runModel = useCallback(async (
+    model: AIModel,
     imageUrl: string,
     settings: ReplicateModelSettings
   ): Promise<string | null> => {
@@ -17,9 +18,9 @@ export const useReplicate = () => {
     setError(null);
 
     try {
-      const result = await replicateService.editImage(imageUrl, settings);
+      const result = await replicateService.runModel(model, imageUrl, settings);
       
-      console.log('useReplicate - editImage service result:', result);
+      console.log('useReplicate - runModel service result:', result);
       console.log('useReplicate - result.status:', result.status);
       console.log('useReplicate - result.output:', result.output);
       console.log('useReplicate - result.output[0]:', result.output?.[0]);
@@ -89,6 +90,15 @@ export const useReplicate = () => {
     }
   }, []);
 
+  // Legacy method for backward compatibility
+  const editImage = useCallback(async (
+    imageUrl: string,
+    settings: ReplicateModelSettings
+  ): Promise<string | null> => {
+    const defaultModel = replicateService.getAvailableModels()[0];
+    return runModel(defaultModel, imageUrl, settings);
+  }, [runModel]);
+
   // Note: Polling is no longer needed since we use replicate.run() on the server
   // which waits for completion before returning the result
 
@@ -102,6 +112,9 @@ export const useReplicate = () => {
     setProgress([]);
   }, []);
 
+  // Get available models
+  const availableModels = replicateService.getAvailableModels();
+
   // Get editing presets
   const editingPresets = replicateService.getEditingPresets();
 
@@ -109,10 +122,12 @@ export const useReplicate = () => {
     isProcessing,
     progress,
     error,
-    editImage,
+    runModel,
+    editImage, // Keep for backward compatibility
     upscaleImage,
     clearError,
     clearProgress,
+    availableModels,
     editingPresets,
   };
 };

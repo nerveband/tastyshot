@@ -16,7 +16,9 @@
     "@tailwindcss/postcss": "^4.1.12",
     "@types/node": "^24.3.0",
     "@vite-pwa/assets-generator": "^1.0.0",
+    "lucide-react": "^0.541.0",
     "react": "^19.1.1",
+    "react-compare-slider": "^3.1.0",
     "react-dom": "^19.1.1",
     "replicate": "^1.1.0",
     "vite-plugin-pwa": "^1.0.3"

@@ -1,6 +1,10 @@
 import React, { useState, useRef } from 'react';
+import { ReactCompareSlider, ReactCompareSliderImage } from 'react-compare-slider';
 import { useReplicate } from '../../hooks/useReplicate';
-import type { ReplicateModelSettings, UpscaleSettings } from '../../types';
+import { ModelPicker } from '../ModelPicker/ModelPicker';
+import { IconMap } from '../UI/IconMap';
+import { ArrowLeft, Edit3, Bot, Download, Share } from 'lucide-react';
+import type { AIModel, ReplicateModelSettings, UpscaleSettings } from '../../types';
 
 interface PhotoEditorProps {
   originalImage: string;
@@ -16,30 +20,39 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   const [editedImage, setEditedImage] = useState<string | null>(null);
   const [customPrompt, setCustomPrompt] = useState('');
   const [showCustomPrompt, setShowCustomPrompt] = useState(false);
-  const [comparisonMode, setComparisonMode] = useState(false);
-  const [sliderPosition, setSliderPosition] = useState(50);
-  
-  const sliderRef = useRef<HTMLDivElement>(null);
+  const [comparisonMode, setComparisonMode] = useState(true); // Enable by default
+  const [showModelPicker, setShowModelPicker] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<AIModel | null>(null);
 
   const {
     isProcessing,
     progress,
     error,
-    editImage,
+    runModel,
     upscaleImage,
     clearError,
+    availableModels,
     editingPresets,
   } = useReplicate();
 
+  // Set default model if none selected
+  React.useEffect(() => {
+    if (!selectedModel && availableModels.length > 0) {
+      setSelectedModel(availableModels[0]);
+    }
+  }, [availableModels, selectedModel]);
+
   // Handle preset selection
   const handlePresetEdit = async (preset: any) => {
+    if (!selectedModel) return;
+    
     clearError();
     const settings: ReplicateModelSettings = {
+      ...selectedModel.defaultSettings,
       prompt: preset.prompt,
-      guidance_scale: 5.5, // Good balance for most edits
     };
 
-    const result = await editImage(originalImage, settings);
+    const result = await runModel(selectedModel, originalImage, settings);
 
     console.log('PhotoEditor - editImage result:', result);
     console.log('PhotoEditor - result type:', typeof result);
@@ -54,15 +67,15 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
 
   // Handle custom prompt editing
   const handleCustomEdit = async () => {
-    if (!customPrompt.trim()) return;
+    if (!customPrompt.trim() || !selectedModel) return;
     
     clearError();
     const settings: ReplicateModelSettings = {
+      ...selectedModel.defaultSettings,
       prompt: customPrompt,
-      guidance_scale: 5.5,
     };
 
-    const result = await editImage(originalImage, settings);
+    const result = await runModel(selectedModel, originalImage, settings);
 
     console.log('PhotoEditor - custom editImage result:', result);
     console.log('PhotoEditor - custom result type:', typeof result);
@@ -71,6 +84,46 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
       console.log('PhotoEditor - setting custom edited image to:', result);
       setEditedImage(result);
       onEditComplete(result);
+    }
+  };
+
+  // Handle save/download functionality
+  const handleSave = async () => {
+    const imageToSave = editedImage || originalImage;
+    
+    try {
+      // For mobile devices, try Web Share API first (allows saving to Photos)
+      if (navigator.share && navigator.canShare) {
+        // Convert base64 to blob
+        const response = await fetch(imageToSave);
+        const blob = await response.blob();
+        const file = new File([blob], 'tastyshot-edited.jpg', { type: 'image/jpeg' });
+        
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'TastyShot Enhanced Photo',
+            text: 'Check out my AI-enhanced photo!',
+            files: [file]
+          });
+          return;
+        }
+      }
+    } catch (error) {
+      console.log('Web Share API not available or failed, falling back to download');
+    }
+    
+    // Fallback: Traditional download
+    try {
+      const link = document.createElement('a');
+      link.href = imageToSave;
+      link.download = `tastyshot-${editedImage ? 'enhanced' : 'original'}-${Date.now()}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Save failed:', error);
+      // Show user-friendly error
+      alert('Unable to save photo. Please try long-pressing the image and selecting "Save Image".');
     }
   };
 
@@ -92,15 +145,6 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     }
   };
 
-  // Handle slider drag for comparison
-  const handleSliderDrag = (e: React.PointerEvent) => {
-    if (!sliderRef.current) return;
-    
-    const rect = sliderRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    setSliderPosition(percentage);
-  };
 
   return (
     <div className="min-h-screen bg-tasty-black text-tasty-white">
@@ -110,69 +154,97 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
           onClick={onBack}
           className="flex items-center space-x-2 text-tasty-white hover:text-tasty-yellow transition-colors"
         >
-          <span className="text-xl">←</span>
+          <ArrowLeft size={20} />
           <span className="font-bold uppercase tracking-wider">BACK</span>
         </button>
         
         <h1 className="font-bold text-lg uppercase tracking-widest">EDIT PHOTO</h1>
         
-        {editedImage && (
+        <div className="flex items-center space-x-3">
           <button
             onClick={() => setComparisonMode(!comparisonMode)}
-            className="text-sm font-bold uppercase tracking-wider text-tasty-yellow hover:text-tasty-orange transition-colors"
+            className="text-sm font-bold uppercase tracking-wider transition-colors"
+            style={{
+              color: comparisonMode ? 'var(--color-tasty-yellow)' : 'var(--color-tasty-white)',
+            }}
           >
-            {comparisonMode ? 'HIDE' : 'COMPARE'}
+            {comparisonMode ? 'COMPARE ON' : 'COMPARE OFF'}
           </button>
-        )}
+          
+          {/* Save Button */}
+          <button
+            onClick={handleSave}
+            className="flex items-center space-x-2 px-3 py-2 bg-tasty-yellow hover:bg-tasty-orange text-tasty-black font-bold uppercase tracking-wider rounded-lg transition-all transform hover:scale-105"
+            style={{
+              background: 'var(--gradient-tasty)',
+              boxShadow: '0 2px 8px rgba(255, 215, 0, 0.3)'
+            }}
+          >
+            <Download size={18} />
+            <span className="hidden sm:inline">SAVE</span>
+          </button>
+        </div>
       </div>
 
       {/* Image Display */}
       <div className="relative flex-1 p-4">
         <div className="relative max-w-2xl mx-auto">
           {comparisonMode && editedImage ? (
-            // Before/After Comparison
-            <div 
-              ref={sliderRef}
-              className="relative w-full aspect-square bg-gray-900 rounded-lg overflow-hidden cursor-ew-resize"
-              onPointerMove={handleSliderDrag}
-              onPointerDown={handleSliderDrag}
-            >
-              {/* Original Image */}
-              <img
-                src={originalImage}
-                alt="Original"
-                className="absolute inset-0 w-full h-full object-cover"
+            // Before/After Comparison with ReactCompareSlider
+            <div className="w-full aspect-square bg-gray-900 rounded-lg overflow-hidden">
+              <ReactCompareSlider
+                itemOne={
+                  <ReactCompareSliderImage
+                    src={originalImage}
+                    alt="Original"
+                    style={{ objectFit: 'cover' }}
+                  />
+                }
+                itemTwo={
+                  <ReactCompareSliderImage
+                    src={editedImage}
+                    alt="Edited"
+                    style={{ objectFit: 'cover' }}
+                  />
+                }
+                position={50}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '8px',
+                  overflow: 'hidden'
+                }}
+                changePositionOnHover={false}
+                onlyHandleDraggable={true}
+                handle={
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    backgroundColor: '#FFD700',
+                    borderRadius: '50%',
+                    border: '2px solid #000',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'ew-resize',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
+                  }}>
+                    <div style={{
+                      width: '4px',
+                      height: '16px',
+                      backgroundColor: '#000',
+                      borderRadius: '2px'
+                    }} />
+                  </div>
+                }
+                boundsPadding={0}
               />
               
-              {/* Edited Image with Clip Path */}
-              <div
-                className="absolute inset-0 w-full h-full"
-                style={{
-                  clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)`,
-                }}
-              >
-                <img
-                  src={editedImage}
-                  alt="Edited"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              
-              {/* Slider Line */}
-              <div
-                className="absolute top-0 bottom-0 w-0.5 bg-tasty-yellow pointer-events-none"
-                style={{ left: `${sliderPosition}%` }}
-              >
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-tasty-yellow rounded-full border-2 border-tasty-black flex items-center justify-center">
-                  <span className="text-tasty-black text-xs">⟷</span>
-                </div>
-              </div>
-              
               {/* Labels */}
-              <div className="absolute top-4 left-4 bg-tasty-black/80 px-3 py-1 rounded text-sm font-bold uppercase tracking-wider">
+              <div className="absolute top-4 left-4 bg-tasty-black/80 px-3 py-1 rounded text-sm font-bold uppercase tracking-wider z-10">
                 ORIGINAL
               </div>
-              <div className="absolute top-4 right-4 bg-tasty-black/80 px-3 py-1 rounded text-sm font-bold uppercase tracking-wider">
+              <div className="absolute top-4 right-4 bg-tasty-black/80 px-3 py-1 rounded text-sm font-bold uppercase tracking-wider z-10">
                 EDITED
               </div>
             </div>
@@ -187,6 +259,24 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
             </div>
           )}
         </div>
+
+        {/* Mobile-First Save Action */}
+        {editedImage && (
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={handleSave}
+              className="flex items-center space-x-3 px-6 py-4 bg-gradient-to-r from-tasty-yellow to-tasty-orange text-tasty-black font-bold text-lg uppercase tracking-wider rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+              style={{
+                background: 'var(--gradient-tasty)',
+                boxShadow: '0 8px 24px rgba(255, 215, 0, 0.4)'
+              }}
+            >
+              <Share size={24} />
+              <span>SAVE TO PHOTOS</span>
+              <Download size={24} />
+            </button>
+          </div>
+        )}
 
         {/* Processing Overlay */}
         {isProcessing && (
@@ -219,18 +309,57 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
         </div>
       )}
 
+      {/* AI Model Selection */}
+      <div className="p-4 border-t border-gray-800 border-b border-gray-800">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-bold text-sm uppercase tracking-wider text-tasty-white">
+            AI MODEL
+          </h3>
+          <button
+            onClick={() => setShowModelPicker(true)}
+            className="text-xs font-bold uppercase tracking-wider text-tasty-yellow hover:text-tasty-orange transition-colors"
+          >
+            CHANGE
+          </button>
+        </div>
+        {selectedModel && (
+          <div className="p-3 bg-gray-900 rounded-lg border border-gray-700">
+            <div className="flex items-center space-x-2 mb-1">
+              <div className="flex items-center justify-center">
+                {selectedModel.category === 'image-editing' ? <Edit3 size={18} color="rgb(245, 245, 245)" /> : <Bot size={18} color="rgb(245, 245, 245)" />}
+              </div>
+              <span className="font-bold text-tasty-white uppercase tracking-wider text-sm">
+                {selectedModel.name}
+              </span>
+              <span className="px-2 py-1 bg-gray-700 text-xs text-tasty-white/70 rounded uppercase tracking-wider">
+                {selectedModel.provider}
+              </span>
+            </div>
+            <p className="text-xs text-tasty-white/70 mb-2">
+              {selectedModel.description}
+            </p>
+            <div className="flex items-center space-x-3 text-xs text-tasty-white/50">
+              <span>Cost: {selectedModel.cost} credits</span>
+              {selectedModel.estimatedTime && (
+                <span>Time: {selectedModel.estimatedTime}</span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Editing Presets */}
-      <div className="p-4 border-t border-gray-800">
+      <div className="p-4">
         <div className="grid grid-cols-2 gap-3 mb-4">
           {editingPresets.map((preset) => (
             <button
               key={preset.id}
               onClick={() => handlePresetEdit(preset)}
-              disabled={isProcessing}
+              disabled={isProcessing || !selectedModel}
               className="p-4 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-lg text-left transition-colors disabled:opacity-50"
             >
               <div className="flex items-center space-x-3">
-                <span className="text-2xl">{preset.icon}</span>
+                <IconMap icon={preset.icon} size={24} />
                 <div>
                   <div className="font-bold text-sm uppercase tracking-wider">
                     {preset.name}
@@ -293,7 +422,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
               />
               <button
                 onClick={handleCustomEdit}
-                disabled={isProcessing || !customPrompt.trim()}
+                disabled={isProcessing || !customPrompt.trim() || !selectedModel}
                 style={{
                   width: '100%',
                   padding: '14px 20px',
@@ -304,13 +433,13 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
                   letterSpacing: '0.05em',
                   borderRadius: '8px',
                   border: 'none',
-                  cursor: isProcessing || !customPrompt.trim() ? 'not-allowed' : 'pointer',
-                  opacity: isProcessing || !customPrompt.trim() ? 0.5 : 1,
+                  cursor: isProcessing || !customPrompt.trim() || !selectedModel ? 'not-allowed' : 'pointer',
+                  opacity: isProcessing || !customPrompt.trim() || !selectedModel ? 0.5 : 1,
                   transition: 'all 0.15s',
                   fontSize: '14px'
                 }}
                 onMouseEnter={(e) => {
-                  if (!isProcessing && customPrompt.trim()) {
+                  if (!isProcessing && customPrompt.trim() && selectedModel) {
                     e.currentTarget.style.transform = 'translateY(-1px)';
                     e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
                   }
@@ -408,6 +537,19 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
           </div>
         )}
       </div>
+
+      {/* Model Picker Modal */}
+      {showModelPicker && (
+        <ModelPicker
+          availableModels={availableModels}
+          selectedModel={selectedModel || availableModels[0]}
+          onModelSelect={(model) => {
+            setSelectedModel(model);
+            setShowModelPicker(false);
+          }}
+          onClose={() => setShowModelPicker(false)}
+        />
+      )}
     </div>
   );
 };

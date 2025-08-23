@@ -1,14 +1,17 @@
 import React, { useEffect } from 'react';
 import { useCamera } from '../../hooks/useCamera';
+import { FolderOpen, SwitchCamera, AlertTriangle, Camera, History } from 'lucide-react';
 
 interface CameraInterfaceProps {
   onPhotoCapture: (photoDataURL: string) => void;
   onError: (error: string) => void;
+  onHistoryClick?: () => void;
 }
 
 export const CameraInterface: React.FC<CameraInterfaceProps> = ({
   onPhotoCapture,
   onError,
+  onHistoryClick,
 }) => {
   const {
     videoRef,
@@ -50,6 +53,25 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
     }
   };
 
+  // Handle file upload
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result;
+        if (typeof result === 'string') {
+          onPhotoCapture(result);
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      onError('Please select a valid image file');
+    }
+    // Reset the input
+    event.target.value = '';
+  };
+
   if (!isSupported) {
     return (
       <div style={{ 
@@ -61,7 +83,9 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
         color: 'var(--color-tasty-white)'
       }}>
         <div style={{ textAlign: 'center', padding: '32px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📱</div>
+          <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+            <Camera size={48} color="rgb(245, 245, 245)" />
+          </div>
           <h2 style={{ 
             fontSize: '24px', 
             fontWeight: 'bold', 
@@ -113,19 +137,7 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
         }}>
           TASTY SHOT
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(245, 245, 245, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <span style={{ fontSize: '14px' }}>⚡</span>
-          </div>
-        </div>
+        <div style={{ width: '32px', height: '32px' }}></div>
       </div>
 
       {/* Camera Viewfinder Container */}
@@ -277,7 +289,9 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             justifyContent: 'center'
           }}>
             <div style={{ textAlign: 'center', padding: '32px', maxWidth: '300px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+              <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+                <AlertTriangle size={48} color="#FFD700" />
+              </div>
               <h2 style={{ 
                 fontSize: '20px', 
                 fontWeight: 'bold', 
@@ -336,29 +350,46 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
           justifyContent: 'space-between', 
           alignItems: 'center', 
           width: '100%',
-          maxWidth: '320px',
+          maxWidth: '360px',
           marginBottom: '16px'
         }}>
-          {/* Gallery/History button */}
-          <button 
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(245, 245, 245, 0.2)',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              WebkitTapHighlightColor: 'transparent',
-              touchAction: 'manipulation',
-              backdropFilter: 'blur(4px)'
-            }}
-            onTouchStart={() => {}}
-          >
-            <span style={{ fontSize: '24px' }}>📁</span>
-          </button>
+          {/* Upload Image button */}
+          <div style={{ position: 'relative' }}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                cursor: 'pointer',
+                zIndex: 1
+              }}
+            />
+            <button 
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(245, 245, 245, 0.2)',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation',
+                backdropFilter: 'blur(4px)',
+                pointerEvents: 'none'
+              }}
+            >
+              <FolderOpen size={24} color="rgb(245, 245, 245)" />
+            </button>
+          </div>
 
           {/* Capture button */}
           <button
@@ -417,8 +448,35 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
               opacity: isLoading ? 0.5 : 1
             }}
           >
-            <span style={{ fontSize: '24px' }}>🔄</span>
+            <SwitchCamera size={24} color="rgb(245, 245, 245)" />
           </button>
+
+          {/* History button */}
+          {onHistoryClick && (
+            <button
+              onClick={onHistoryClick}
+              onTouchStart={() => {}}
+              disabled={isLoading}
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(245, 245, 245, 0.2)',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation',
+                backdropFilter: 'blur(4px)',
+                transition: 'backgroundColor 0.15s',
+                opacity: isLoading ? 0.5 : 1
+              }}
+            >
+              <History size={24} color="rgb(245, 245, 245)" />
+            </button>
+          )}
         </div>
 
         {/* Instructions */}
@@ -430,7 +488,7 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             letterSpacing: '0.05em',
             margin: 0
           }}>
-            TAP TO CAPTURE
+            TAP TO CAPTURE • UPLOAD • HISTORY
           </p>
         </div>
       </div>
