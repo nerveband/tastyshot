@@ -95,6 +95,16 @@ export default async function handler(req, res) {
           console.log('Starting replicate.run call...');
           const startTime = Date.now();
           
+          // Additional validation for Flux models
+          if (model.includes('flux-fill') && !input.mask) {
+            console.log('Flux Fill model detected, generating full mask for whole image enhancement');
+            // For Flux Fill models, we need a mask. Since we want to enhance the whole image,
+            // we'll create a full white mask or let the model handle it
+            input.mask = null; // Let the model use the entire image
+          }
+          
+          console.log('Final input being sent to Replicate:', JSON.stringify(input, null, 2));
+          
           result = await replicate.run(model, { input });
           
           const endTime = Date.now();

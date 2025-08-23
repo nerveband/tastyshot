@@ -85,8 +85,9 @@ export const replicateService = {
 
     // Handle different model types
     switch (model.id) {
-      case 'flux-kontext-dev':
+      case 'flux-kontext-max':
       case 'flux-kontext-pro':
+      case 'flux-krea-dev':
         const fluxKontextSettings = settings as FluxKontextSettings;
         return {
           ...baseInput,
@@ -97,17 +98,26 @@ export const replicateService = {
           height: fluxKontextSettings.height || 1024,
         };
 
-      case 'flux-fill-dev':
-      case 'flux-fill-pro':
-        const fluxFillSettings = settings as FluxKontextSettings;
-        // Flux Fill models need a mask - for now we'll use the whole image
+      case 'seededit-30':
+        const seedEditSettings = settings as FluxKontextSettings;
         return {
           ...baseInput,
-          prompt: fluxFillSettings.prompt || "Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.",
-          guidance_scale: fluxFillSettings.guidance_scale || 3.5,
-          num_inference_steps: fluxFillSettings.num_inference_steps || 28,
-          width: fluxFillSettings.width || 1024,
-          height: fluxFillSettings.height || 1024,
+          prompt: seedEditSettings.prompt || "Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.",
+          guidance_scale: seedEditSettings.guidance_scale || 5.5,
+          num_inference_steps: seedEditSettings.num_inference_steps || 25,
+          width: seedEditSettings.width || 1024,
+          height: seedEditSettings.height || 1024,
+        };
+
+      case 'qwen-image-edit':
+        const qwenSettings = settings as FluxKontextSettings;
+        return {
+          ...baseInput,
+          prompt: qwenSettings.prompt || "Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.",
+          guidance_scale: qwenSettings.guidance_scale || 3.5,
+          num_inference_steps: qwenSettings.num_inference_steps || 28,
+          width: qwenSettings.width || 1024,
+          height: qwenSettings.height || 1024,
         };
 
       default:
@@ -226,12 +236,12 @@ export const replicateService = {
   // Get available AI models
   getAvailableModels: (): AIModel[] => [
     {
-      id: 'flux-kontext-dev',
-      name: 'Flux Kontext Dev',
-      description: 'State-of-the-art text-guided image editing',
+      id: 'flux-kontext-max',
+      name: 'Flux Kontext Max',
+      description: 'Premium text-based image editing with maximum performance and enhanced typography',
       provider: 'Black Forest Labs',
       category: 'image-editing',
-      replicateModel: 'black-forest-labs/flux-kontext-dev',
+      replicateModel: 'black-forest-labs/flux-kontext-max',
       supportedInputs: ['camera', 'upload'],
       defaultSettings: {
         prompt: 'Enhance this image with improved brightness, increased color saturation, sharper details, and professional color correction. Adjust exposure levels for optimal lighting, boost vibrancy without oversaturation, and enhance overall image quality while maintaining natural appearance.',
@@ -241,15 +251,15 @@ export const replicateService = {
         height: 1024,
       } as FluxKontextSettings,
       estimatedTime: '30-60 seconds',
-      cost: 2,
+      cost: 3,
     },
     {
-      id: 'flux-fill-dev',
-      name: 'Flux Fill Dev',
-      description: 'Professional-quality image editing and inpainting',
+      id: 'flux-krea-dev',
+      name: 'Flux Krea Dev',
+      description: 'Opinionated text-to-image model excelling in photorealism without oversaturated AI look',
       provider: 'Black Forest Labs',
       category: 'image-editing',
-      replicateModel: 'black-forest-labs/flux-fill-dev',
+      replicateModel: 'black-forest-labs/flux-krea-dev',
       supportedInputs: ['camera', 'upload'],
       defaultSettings: {
         prompt: 'Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.',
@@ -264,7 +274,7 @@ export const replicateService = {
     {
       id: 'flux-kontext-pro',
       name: 'Flux Kontext Pro',
-      description: 'Professional image editing with Flux technology',
+      description: 'State-of-the-art image editing with strong prompt following and consistent results',
       provider: 'Black Forest Labs',
       category: 'image-editing',
       replicateModel: 'black-forest-labs/flux-kontext-pro',
@@ -280,19 +290,39 @@ export const replicateService = {
       cost: 3,
     },
     {
-      id: 'flux-fill-pro',
-      name: 'Flux Fill Pro',
-      description: 'Advanced inpainting and image editing',
-      provider: 'Black Forest Labs',
+      id: 'seededit-30',
+      name: 'SeedEdit 3.0',
+      description: 'Fast and high-quality generative image editing preserving details while making targeted edits',
+      provider: 'ByteDance',
       category: 'image-editing',
-      replicateModel: 'black-forest-labs/flux-fill-pro',
+      replicateModel: 'bytedance/seededit-3.0',
       supportedInputs: ['camera', 'upload'],
       defaultSettings: {
-        prompt: 'Improve this image by enhancing the lighting, adjusting colors for better saturation and balance, increasing sharpness and detail clarity, correcting exposure levels, and making professional quality adjustments while keeping a natural appearance.',
+        prompt: 'Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.',
+        guidance_scale: 5.5,
         num_inference_steps: 25,
-        guidance_scale: 3.5,
+        width: 1024,
+        height: 1024,
       } as FluxKontextSettings,
-      estimatedTime: '20-40 seconds',
+      estimatedTime: '20-30 seconds',
+      cost: 2,
+    },
+    {
+      id: 'qwen-image-edit',
+      name: 'Qwen Image Edit',
+      description: 'Powerful image editing with text rendering capabilities and dual semantic/appearance editing',
+      provider: 'Qwen',
+      category: 'image-editing',
+      replicateModel: 'qwen/qwen-image-edit',
+      supportedInputs: ['camera', 'upload'],
+      defaultSettings: {
+        prompt: 'Enhance this image with improved lighting, better color correction, increased sharpness and detail, professional quality adjustments, and overall visual enhancement while maintaining natural appearance.',
+        guidance_scale: 3.5,
+        num_inference_steps: 28,
+        width: 1024,
+        height: 1024,
+      } as FluxKontextSettings,
+      estimatedTime: '15-25 seconds',
       cost: 2,
     },
   ],

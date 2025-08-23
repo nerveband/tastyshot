@@ -416,22 +416,24 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
           </button>
         </div>
 
-        {/* Main Action Row */}
+        {/* Main Action Row - Truly Centered Capture Button */}
         <div style={{ 
           display: 'flex', 
-          justifyContent: 'space-between', 
           alignItems: 'center', 
+          justifyContent: 'center',
           width: '100%',
-          maxWidth: '280px',
+          position: 'relative',
           marginBottom: '16px'
         }}>
-          {/* History button */}
+          {/* Left side button - History */}
           {onHistoryClick && (
             <button
               onClick={onHistoryClick}
               onTouchStart={() => {}}
               disabled={isLoading}
               style={{
+                position: 'absolute',
+                left: '0',
                 width: '56px',
                 height: '56px',
                 borderRadius: '50%',
@@ -451,7 +453,7 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             </button>
           )}
 
-          {/* Capture button - CENTERED */}
+          {/* Capture button - PERFECTLY CENTERED */}
           <button
             onClick={handleCapturePhoto}
             onTouchStart={() => {}}
@@ -499,12 +501,14 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             }}></div>
           </button>
 
-          {/* Camera switch button */}
+          {/* Right side button - Camera Switch */}
           <button
             onClick={switchCamera}
             onTouchStart={() => {}}
             disabled={isLoading}
             style={{
+              position: 'absolute',
+              right: '0',
               width: '56px',
               height: '56px',
               borderRadius: '50%',
