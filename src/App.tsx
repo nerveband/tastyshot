@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { HomeScreen } from './components/Home/HomeScreen';
 import { CameraInterface } from './components/Camera/CameraInterface';
 import { PhotoEditor } from './components/Editor/PhotoEditor';
 import { PhotoHistory } from './components/History/PhotoHistory';
 
-type View = 'camera' | 'editing' | 'history';
+type View = 'home' | 'camera' | 'editing' | 'history';
 
 interface PhotoHistoryItem {
   id: string;
@@ -14,9 +15,20 @@ interface PhotoHistoryItem {
 }
 
 function App() {
-  const [currentView, setCurrentView] = useState<View>('camera');
+  const [currentView, setCurrentView] = useState<View>('home');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Handle camera launch
+  const handleCameraLaunch = () => {
+    setCurrentView('camera');
+  };
+
+  // Handle photo selection (from upload or drag & drop)
+  const handlePhotoSelect = (photoDataURL: string) => {
+    setCapturedImage(photoDataURL);
+    setCurrentView('editing');
+  };
 
   // Handle photo capture from camera
   const handlePhotoCapture = (photoDataURL: string) => {
@@ -72,9 +84,9 @@ function App() {
     }, 5000);
   };
 
-  // Return to camera view
-  const returnToCamera = () => {
-    setCurrentView('camera');
+  // Return to home view
+  const returnToHome = () => {
+    setCurrentView('home');
     setCapturedImage(null);
     setError(null);
   };
@@ -152,11 +164,20 @@ function App() {
     }}>
       {renderError()}
       
+      {currentView === 'home' && (
+        <HomeScreen
+          onCameraLaunch={handleCameraLaunch}
+          onPhotoSelect={handlePhotoSelect}
+          onHistoryClick={goToHistory}
+        />
+      )}
+      
       {currentView === 'camera' && (
         <CameraInterface
           onPhotoCapture={handlePhotoCapture}
           onError={handleError}
           onHistoryClick={goToHistory}
+          onBack={returnToHome}
         />
       )}
       
@@ -164,13 +185,13 @@ function App() {
         <PhotoEditor
           originalImage={capturedImage}
           onEditComplete={handleEditComplete}
-          onBack={returnToCamera}
+          onBack={returnToHome}
         />
       )}
       
       {currentView === 'history' && (
         <PhotoHistory
-          onBack={returnToCamera}
+          onBack={returnToHome}
           onPhotoSelect={handleHistoryPhotoSelect}
         />
       )}

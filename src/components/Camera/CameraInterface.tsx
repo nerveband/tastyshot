@@ -1,17 +1,19 @@
 import React, { useEffect } from 'react';
 import { useCamera } from '../../hooks/useCamera';
-import { FolderOpen, SwitchCamera, AlertTriangle, Camera, History, Info } from 'lucide-react';
+import { FolderOpen, SwitchCamera, AlertTriangle, Camera, History, Info, ArrowLeft } from 'lucide-react';
 
 interface CameraInterfaceProps {
   onPhotoCapture: (photoDataURL: string) => void;
   onError: (error: string) => void;
   onHistoryClick?: () => void;
+  onBack?: () => void;
 }
 
 export const CameraInterface: React.FC<CameraInterfaceProps> = ({
   onPhotoCapture,
   onError,
   onHistoryClick,
+  onBack,
 }) => {
   const {
     videoRef,
@@ -128,6 +130,30 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
         flexShrink: 0,
         zIndex: 1000
       }}>
+        {onBack ? (
+          <button
+            onClick={onBack}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-tasty-white)',
+              cursor: 'pointer',
+              padding: '8px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <ArrowLeft size={24} />
+          </button>
+        ) : (
+          <div style={{ width: '32px', height: '32px' }}></div>
+        )}
+        
         <div style={{ 
           color: 'var(--color-tasty-white)', 
           fontWeight: 'bold', 

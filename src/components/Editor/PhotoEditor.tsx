@@ -5,7 +5,7 @@ import { useReplicate } from '../../hooks/useReplicate';
 import { IconMap } from '../UI/IconMap';
 import { ArrowLeft, Bot, Download, Share } from 'lucide-react';
 import type { GeminiModel } from '../../services/gemini';
-import type { AIModel } from '../../types';
+import type { AIModel, FluxKontextSettings } from '../../types';
 
 interface PhotoEditorProps {
   originalImage: string;
@@ -58,12 +58,13 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
       result = await gemini.processImage(selectedModel as GeminiModel, originalImage, preset.prompt);
     } else {
       // For Replicate models, use the settings format
+      const defaultSettings = (selectedModel as AIModel).defaultSettings as FluxKontextSettings;
       const settings = {
         prompt: preset.prompt,
-        guidance_scale: (selectedModel as AIModel).defaultSettings?.guidance_scale || 3.5,
-        num_inference_steps: (selectedModel as AIModel).defaultSettings?.num_inference_steps || 25,
-        width: (selectedModel as AIModel).defaultSettings?.width || 1024,
-        height: (selectedModel as AIModel).defaultSettings?.height || 1024,
+        guidance_scale: defaultSettings?.guidance_scale || 3.5,
+        num_inference_steps: defaultSettings?.num_inference_steps || 25,
+        width: defaultSettings?.width || 1024,
+        height: defaultSettings?.height || 1024,
       };
       result = await replicate.runModel(selectedModel as AIModel, originalImage, settings);
     }
@@ -83,8 +84,23 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   const handleCustomEdit = async () => {
     if (!customPrompt.trim() || !selectedModel) return;
     
-    clearError();
-    const result = await processImage(selectedModel, originalImage, customPrompt);
+    currentService.clearError();
+    
+    let result: string | null = null;
+    
+    if (modelType === 'gemini') {
+      result = await gemini.processImage(selectedModel as GeminiModel, originalImage, customPrompt);
+    } else {
+      const defaultSettings = (selectedModel as AIModel).defaultSettings as FluxKontextSettings;
+      const settings = {
+        prompt: customPrompt,
+        guidance_scale: defaultSettings?.guidance_scale || 3.5,
+        num_inference_steps: defaultSettings?.num_inference_steps || 25,
+        width: defaultSettings?.width || 1024,
+        height: defaultSettings?.height || 1024,
+      };
+      result = await replicate.runModel(selectedModel as AIModel, originalImage, settings);
+    }
 
     console.log('PhotoEditor - custom editImage result:', result);
     console.log('PhotoEditor - custom result type:', typeof result);
@@ -139,12 +155,27 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   // Handle image upscaling (using Gemini's enhance feature)
   const handleUpscale = async (factor: 'x2' | 'x4') => {
     const imageToUpscale = editedImage || originalImage;
-    clearError();
-    
     if (!selectedModel) return;
     
+    currentService.clearError();
+    
     const upscalePrompt = `Enhance and upscale this image by ${factor === 'x2' ? '2x' : '4x'} with improved clarity, sharpness, and detail preservation. Maintain the original composition and colors.`;
-    const result = await processImage(selectedModel, imageToUpscale, upscalePrompt);
+    
+    let result: string | null = null;
+    
+    if (modelType === 'gemini') {
+      result = await gemini.processImage(selectedModel as GeminiModel, imageToUpscale, upscalePrompt);
+    } else {
+      const defaultSettings = (selectedModel as AIModel).defaultSettings as FluxKontextSettings;
+      const settings = {
+        prompt: upscalePrompt,
+        guidance_scale: defaultSettings?.guidance_scale || 3.5,
+        num_inference_steps: defaultSettings?.num_inference_steps || 25,
+        width: defaultSettings?.width || 1024,
+        height: defaultSettings?.height || 1024,
+      };
+      result = await replicate.runModel(selectedModel as AIModel, imageToUpscale, settings);
+    }
 
     if (result) {
       setEditedImage(result);
