@@ -177,17 +177,28 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
         </div>
       </div>
 
+      {/* Timeline Photo Art */}
+      <div className="timeline-photo-art">
+        <img 
+          src="/timeline-photo-art-for-home-screen.jpg" 
+          alt="Food photography timeline" 
+          className="timeline-art-image"
+        />
+      </div>
+
       <style>{`
         .home-screen {
-          min-height: 100vh;
+          height: 100vh;
+          max-height: 100vh;
           background-color: var(--color-tasty-black);
           color: white;
           display: flex;
           flex-direction: column;
           padding-top: env(safe-area-inset-top);
-          padding-bottom: env(safe-area-inset-bottom);
+          padding-bottom: 0; /* Remove bottom padding to prevent scroll */
           padding-left: env(safe-area-inset-left);
           padding-right: env(safe-area-inset-right);
+          overflow: hidden; /* Prevent scrolling */
         }
         
         /* App Header */
@@ -276,10 +287,13 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           max-width: 800px;
           width: 100%;
           margin: 0 auto;
-          padding: 40px 24px;
+          padding: 40px 24px 120px 24px; /* Add bottom padding for timeline art */
           display: flex;
           flex-direction: column;
           gap: 40px;
+          overflow-y: auto; /* Allow content to scroll if needed */
+          position: relative;
+          z-index: 2; /* Above timeline art */
         }
         
         /* Welcome Section */
@@ -497,7 +511,7 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           }
           
           .main-content {
-            padding: 24px 16px;
+            padding: 24px 16px 100px 16px; /* Adjust bottom padding for timeline art */
             gap: 32px;
           }
           
@@ -540,6 +554,28 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           }
         }
         
+        /* Timeline Photo Art */
+        .timeline-photo-art {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: 100%;
+          height: 80px;
+          overflow: hidden;
+          z-index: 1;
+          pointer-events: none;
+        }
+        
+        .timeline-art-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          opacity: 0.3;
+          filter: brightness(0.8) contrast(1.2);
+        }
+        
         /* Tablet */
         @media (min-width: 768px) and (max-width: 1023px) {
           .main-content {
@@ -557,6 +593,16 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           
           .action-card {
             min-height: 180px;
+          }
+          
+          .timeline-photo-art {
+            height: 100px;
+          }
+        }
+        
+        @media (min-width: 1024px) {
+          .timeline-photo-art {
+            height: 120px;
           }
         }
       `}</style>

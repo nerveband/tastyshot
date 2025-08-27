@@ -1217,7 +1217,8 @@ The image has been processed successfully - the download feature may not work in
         .editor-header {
           padding-left: max(24px, env(safe-area-inset-left));
           padding-right: max(24px, env(safe-area-inset-right));
-          padding-top: max(16px, env(safe-area-inset-top) + 16px);
+          padding-top: max(20px, env(safe-area-inset-top) + 20px);
+          padding-bottom: 16px; /* Ensure proper spacing */
         }
 
         /* Mobile responsive updates */
@@ -1240,12 +1241,13 @@ The image has been processed successfully - the download feature may not work in
           
           .image-section {
             /* Reduced from flex: 1 to give more space to controls */
-            flex: 0.6;
+            flex: 0.5;
             padding: 8px;
             display: flex;
             flex-direction: column;
             min-height: 0;
-            max-height: 40vh; /* Constrain image area on mobile */
+            max-height: 35vh; /* Further reduced to prevent save button blocking */
+            overflow: visible; /* Allow save button to be visible */
           }
           
           .image-container {
@@ -1661,6 +1663,34 @@ The image has been processed successfully - the download feature may not work in
           display: flex !important;
           align-items: center;
           justify-content: center;
+          width: 100%;
+          height: 100%;
+        }
+        
+        /* Ensure both images have identical dimensions and alignment */
+        .comparison-wrapper [data-testid="rcs-container"] {
+          width: 100% !important;
+          height: 100% !important;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .comparison-wrapper [data-testid="rcs-container"] > div {
+          width: 100% !important;
+          height: 100% !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+        
+        .comparison-wrapper img {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: contain !important;
+          object-position: center !important;
+          display: block !important;
         }
         
         @media (max-width: 767px) {
@@ -1669,17 +1699,27 @@ The image has been processed successfully - the download feature may not work in
             padding: 0;
             border-radius: 8px;
             height: auto;
-            min-height: 200px;
+            min-height: 250px;
+            max-height: 40vh;
+            overflow: hidden;
           }
           
-          /* Ensure comparison slider images are properly contained */
+          /* Fix image cropping and alignment on mobile */
           .comparison-wrapper [data-testid="rcs-container"] {
             height: 100% !important;
-            min-height: 200px !important;
+            min-height: 250px !important;
+            max-height: 40vh !important;
           }
           
           .comparison-wrapper [data-testid="rcs-container"] > div {
             height: 100% !important;
+            min-height: 250px !important;
+            max-height: 40vh !important;
+          }
+          
+          .comparison-wrapper img {
+            max-height: 40vh !important;
+            min-height: 250px !important;
           }
         }
       `}</style>
