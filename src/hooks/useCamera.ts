@@ -28,6 +28,24 @@ export const useCamera = () => {
     }
   }, []);
 
+  // Initialize camera with specific device
+  const initializeCameraWithDevice = useCallback(async (deviceId: string) => {
+    if (!videoRef.current) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      await cameraServiceRef.current.initializeCameraWithDevice(videoRef.current, deviceId);
+      setIsInitialized(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to initialize camera');
+      setIsInitialized(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Capture photo
   const capturePhoto = useCallback(async () => {
     if (!isInitialized) {
@@ -98,6 +116,7 @@ export const useCamera = () => {
     error,
     capturedPhoto,
     initializeCamera,
+    initializeCameraWithDevice,
     capturePhoto,
     switchCamera,
     stopCamera,

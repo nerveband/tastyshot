@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useCamera } from '../../hooks/useCamera';
-import { FolderOpen, SwitchCamera, AlertTriangle, Camera, History, Info, ArrowLeft } from 'lucide-react';
+import { FolderOpen, SwitchCamera, AlertTriangle, Camera, History, Info, ArrowLeft, Settings, Zap, Grid3X3, Sun } from 'lucide-react';
 
 interface CameraInterfaceProps {
   onPhotoCapture: (photoDataURL: string) => void;
@@ -21,16 +21,52 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
     isLoading,
     error,
     initializeCamera,
+    initializeCameraWithDevice,
     capturePhoto,
     switchCamera,
     stopCamera,
     isSupported,
   } = useCamera();
 
+  const [showGrid, setShowGrid] = useState(true);
+  const [flashEnabled, setFlashEnabled] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('none');
+  const [cameraCapabilities, setCameraCapabilities] = useState({
+    hasFlash: false,
+    hasMultipleCameras: false,
+    supportedResolutions: [] as string[],
+    deviceCount: 0,
+    availableDevices: [] as MediaDeviceInfo[]
+  });
+  const [selectedCameraId, setSelectedCameraId] = useState<string>('');
+
+  // Detect camera capabilities
+  const detectCameraCapabilities = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      setCameraCapabilities({
+        hasFlash: false, // Flash detection is limited in web browsers
+        hasMultipleCameras: videoDevices.length > 1,
+        supportedResolutions: ['Auto'], // Simplified - actual resolution detection is complex
+        deviceCount: videoDevices.length,
+        availableDevices: videoDevices
+      });
+
+      // Set default camera if none selected
+      if (!selectedCameraId && videoDevices.length > 0) {
+        setSelectedCameraId(videoDevices[0].deviceId);
+      }
+    } catch (error) {
+      console.log('Camera capabilities detection failed:', error);
+    }
+  }, [selectedCameraId]);
+
   // Initialize camera on mount
   useEffect(() => {
     if (isSupported) {
-      initializeCamera('environment'); // Start with back camera
+      detectCameraCapabilities(); // Detect capabilities first
     } else {
       onError('Camera not supported on this device');
     }
@@ -38,7 +74,18 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
     return () => {
       stopCamera();
     };
-  }, [initializeCamera, stopCamera, isSupported, onError]);
+  }, [isSupported, onError, detectCameraCapabilities, stopCamera]);
+
+  // Initialize camera after capabilities are detected
+  useEffect(() => {
+    if (isSupported && cameraCapabilities.availableDevices.length > 0 && selectedCameraId) {
+      if (selectedCameraId) {
+        initializeCameraWithDevice(selectedCameraId);
+      } else {
+        initializeCamera('environment'); // Fallback to default
+      }
+    }
+  }, [isSupported, cameraCapabilities.availableDevices.length, selectedCameraId, initializeCamera, initializeCameraWithDevice]);
 
   // Handle errors
   useEffect(() => {
@@ -47,13 +94,51 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
     }
   }, [error, onError]);
 
+  // Keyboard shortcuts for desktop
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !isLoading) {
+        e.preventDefault();
+        handleCapturePhoto();
+      }
+      if (e.key === 'g' || e.key === 'G') {
+        e.preventDefault();
+        setShowGrid(!showGrid);
+      }
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        switchCamera();
+      }
+      if (e.key === 'h' || e.key === 'H' && onHistoryClick) {
+        e.preventDefault();
+        onHistoryClick();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isLoading, showGrid, switchCamera, onHistoryClick]);
+
   // Handle photo capture
-  const handleCapturePhoto = async () => {
+  const handleCapturePhoto = useCallback(async () => {
     const photo = await capturePhoto();
     if (photo) {
       onPhotoCapture(photo);
     }
-  };
+  }, [capturePhoto, onPhotoCapture]);
+
+  // Handle camera selection
+  const handleCameraSelect = useCallback(async (deviceId: string) => {
+    if (deviceId === selectedCameraId) return; // Same camera, no change needed
+    
+    try {
+      setSelectedCameraId(deviceId);
+      await initializeCameraWithDevice(deviceId);
+    } catch (error) {
+      console.error('Failed to switch to selected camera:', error);
+      onError('Failed to switch camera. Please try again.');
+    }
+  }, [selectedCameraId, initializeCameraWithDevice, onError]);
 
   // Handle file upload
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,448 +191,356 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
 
   return (
     <div className="camera-interface">
-      {/* Header */}
+      {/* Desktop Header */}
       <div className="camera-header">
         {onBack ? (
           <button
             onClick={onBack}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--color-tasty-white)',
-              cursor: 'pointer',
-              padding: '8px',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            className="header-button"
+            title="Back to Home"
           >
-            <ArrowLeft size={24} />
+            <ArrowLeft size={20} />
+            <span className="desktop-only">Back</span>
           </button>
         ) : (
-          <div style={{ width: '32px', height: '32px' }}></div>
+          <div className="spacer"></div>
         )}
         
-        <div style={{ 
-          color: 'var(--color-tasty-white)', 
-          fontWeight: 'bold', 
-          fontSize: '18px',
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em'
-        }}>
-          TASTY SHOT
+        <div className="title">
+          <img src="/tastyshot-icon.png" alt="TastyShot" className="title-icon-img" width="32" height="32" />
+          <span>TASTYSHOT</span>
+          <div className="subtitle">AI Food Photography</div>
         </div>
-        <div style={{ width: '32px', height: '32px' }}></div>
-      </div>
-
-      {/* Camera Viewfinder Container */}
-      <div style={{ 
-        flex: 1,
-        position: 'relative',
-        backgroundColor: '#000',
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 0
-      }}>
-        <video
-          ref={videoRef}
-          style={{ 
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block'
-          }}
-          playsInline
-          muted
-          autoPlay
-        />
         
-        {/* Loading Overlay */}
-        {isLoading && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                border: '4px solid var(--color-tasty-yellow)',
-                borderTop: '4px solid transparent',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
-                margin: '0 auto 16px'
-              }}></div>
-              <p style={{ 
-                color: 'var(--color-tasty-white)', 
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                fontSize: '14px'
-              }}>
-                INITIALIZING CAMERA
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Viewfinder Grid (only when camera is ready) */}
-        {isInitialized && !isLoading && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            pointerEvents: 'none',
-            opacity: 0.3
-          }}>
-            {/* Rule of thirds grid */}
-            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-              {/* Vertical lines */}
-              <div style={{ 
-                position: 'absolute', 
-                left: '33.33%', 
-                top: 0, 
-                bottom: 0, 
-                width: '1px', 
-                backgroundColor: 'var(--color-tasty-white)' 
-              }}></div>
-              <div style={{ 
-                position: 'absolute', 
-                left: '66.67%', 
-                top: 0, 
-                bottom: 0, 
-                width: '1px', 
-                backgroundColor: 'var(--color-tasty-white)' 
-              }}></div>
-              {/* Horizontal lines */}
-              <div style={{ 
-                position: 'absolute', 
-                top: '33.33%', 
-                left: 0, 
-                right: 0, 
-                height: '1px', 
-                backgroundColor: 'var(--color-tasty-white)' 
-              }}></div>
-              <div style={{ 
-                position: 'absolute', 
-                top: '66.67%', 
-                left: 0, 
-                right: 0, 
-                height: '1px', 
-                backgroundColor: 'var(--color-tasty-white)' 
-              }}></div>
-            </div>
-            
-            {/* Center focus indicator */}
-            <div style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '64px',
-              height: '64px',
-              border: '2px solid var(--color-tasty-yellow)',
-              borderRadius: '50%',
-              opacity: 0.8
-            }}>
-              <div style={{
-                width: '8px',
-                height: '8px',
-                backgroundColor: 'var(--color-tasty-yellow)',
-                borderRadius: '50%',
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)'
-              }}></div>
-            </div>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && !isLoading && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <div style={{ textAlign: 'center', padding: '32px', maxWidth: '300px' }}>
-              <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
-                <AlertTriangle size={48} color="#FFD700" />
-              </div>
-              <h2 style={{ 
-                fontSize: '20px', 
-                fontWeight: 'bold', 
-                color: 'var(--color-tasty-white)', 
-                marginBottom: '16px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em'
-              }}>
-                CAMERA ERROR
-              </h2>
-              <p style={{ 
-                color: 'rgba(245, 245, 245, 0.7)', 
-                marginBottom: '24px', 
-                fontSize: '14px' 
-              }}>
-                {error}
-              </p>
-              <button
-                onClick={() => initializeCamera('environment')}
-                style={{
-                  background: 'var(--gradient-tasty)',
-                  color: 'var(--color-tasty-black)',
-                  fontWeight: 'bold',
-                  padding: '12px 24px',
-                  borderRadius: '8px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                RETRY
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Bottom Controls */}
-      <div style={{
-        padding: '24px 20px',
-        paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
-        backgroundColor: 'rgba(0, 0, 0, 0.95)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        minHeight: '160px',
-        flexShrink: 0,
-        zIndex: 1000,
-        borderTop: '1px solid rgba(245, 245, 245, 0.1)'
-      }}>
-        {/* Top Row - Secondary Actions */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          width: '100%',
-          maxWidth: '200px',
-          marginBottom: '24px'
-        }}>
-          {/* Upload Image button */}
-          <div style={{ position: 'relative' }}>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileUpload}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                opacity: 0,
-                cursor: 'pointer',
-                zIndex: 1
-              }}
-            />
-            <button 
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                backgroundColor: 'transparent',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                WebkitTapHighlightColor: 'transparent',
-                touchAction: 'manipulation',
-                transition: 'opacity 0.2s',
-                pointerEvents: 'none'
-              }}
-            >
-              <FolderOpen size={26} color="rgba(245, 245, 245, 0.8)" />
-            </button>
-          </div>
-
-          {/* About button */}
+        <div className="header-controls">
           <button
-            onClick={() => alert('Tasty Shot v1.0\n\nAI-powered food photography app\n\nTransform your food photos with professional AI enhancement using state-of-the-art models.')}
-            onTouchStart={() => {}}
-            disabled={isLoading}
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              backgroundColor: 'transparent',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              WebkitTapHighlightColor: 'transparent',
-              touchAction: 'manipulation',
-              transition: 'opacity 0.2s',
-              opacity: isLoading ? 0.5 : 0.8
+            onClick={() => {
+              const helpText = `TastyShot Camera Help:
+
+📸 CAPTURE CONTROLS:
+• SPACE or Click - Take photo
+• Tap on mobile - Capture
+
+🎯 CAMERA CONTROLS:
+• C - Switch camera (${cameraCapabilities.hasMultipleCameras ? `${cameraCapabilities.deviceCount} available` : 'single camera'})
+• G - Toggle grid overlay
+• Flash - ${cameraCapabilities.hasFlash ? 'Available' : 'Not supported on web'}
+
+⌨️ KEYBOARD SHORTCUTS:
+• SPACE - Capture photo  
+• G - Toggle grid
+• C - Switch camera
+• H - View history
+
+💡 PHOTO TIPS:
+• Use natural light when possible
+• Enable grid for rule of thirds composition
+• Hold device steady for sharp photos
+• Clean camera lens for best quality
+
+📱 DEVICE INFO:
+• ${cameraCapabilities.deviceCount} camera(s) detected
+• Resolution: Auto (optimized)
+• Format: JPEG, High Quality`;
+              
+              alert(helpText);
             }}
+            className="header-button"
+            title="Camera Help & Tips"
           >
-            <Info size={26} color="rgba(245, 245, 245, 0.8)" />
+            <Info size={20} />
+            <span className="desktop-only">Help</span>
           </button>
         </div>
+      </div>
 
-        {/* Main Action Row - Truly Centered Capture Button */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          width: '100%',
-          position: 'relative',
-          marginBottom: '16px'
-        }}>
-          {/* Left side button - History */}
+      {/* Main Camera Content */}
+      <div className="camera-content">
+        {/* Left Sidebar - Controls */}
+        <div className="left-sidebar">
+          <div className="sidebar-section">
+            <h3 className="sidebar-title">Camera Settings</h3>
+            <div className="control-group">
+              {/* Camera Selection Dropdown - Desktop Only */}
+              {cameraCapabilities.availableDevices.length > 1 && (
+                <div className="camera-selector">
+                  <label className="selector-label">Camera Source:</label>
+                  <select
+                    value={selectedCameraId}
+                    onChange={(e) => handleCameraSelect(e.target.value)}
+                    className="camera-select"
+                    disabled={isLoading}
+                  >
+                    {cameraCapabilities.availableDevices.map((device, index) => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label || `Camera ${index + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <button
+                onClick={() => setShowGrid(!showGrid)}
+                className={`control-button ${showGrid ? 'active' : ''}`}
+                title="Toggle Grid (G)"
+              >
+                <Grid3X3 size={20} />
+                <span>Grid</span>
+                {showGrid && <div className="active-indicator"></div>}
+              </button>
+              
+              {cameraCapabilities.hasMultipleCameras && (
+                <button
+                  onClick={switchCamera}
+                  className="control-button"
+                  disabled={isLoading}
+                  title={`Switch Camera (C) - ${cameraCapabilities.deviceCount} available`}
+                >
+                  <SwitchCamera size={20} />
+                  <span>Flip</span>
+                </button>
+              )}
+              
+              {cameraCapabilities.hasFlash && (
+                <button
+                  onClick={() => setFlashEnabled(!flashEnabled)}
+                  className={`control-button ${flashEnabled ? 'active' : ''}`}
+                  title="Flash"
+                >
+                  <Zap size={20} />
+                  <span>Flash</span>
+                  {flashEnabled && <div className="active-indicator"></div>}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {onHistoryClick && (
+            <div className="sidebar-section">
+              <h3 className="sidebar-title">Quick Actions</h3>
+              <div className="control-group">
+                <button
+                  onClick={onHistoryClick}
+                  className="control-button"
+                  title="View History (H)"
+                >
+                  <History size={20} />
+                  <span>History</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Keyboard Shortcuts Help */}
+          <div className="sidebar-section shortcuts">
+            <h3 className="sidebar-title">Shortcuts</h3>
+            <div className="shortcut-list">
+              <div className="shortcut-item">
+                <kbd>SPACE</kbd>
+                <span>Capture</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>G</kbd>
+                <span>Grid</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>C</kbd>
+                <span>Switch</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>H</kbd>
+                <span>History</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Center - Camera View */}
+        <div className="camera-viewport">
+          <div className="viewfinder-container">
+            <video
+              ref={videoRef}
+              className="camera-video"
+              playsInline
+              muted
+              autoPlay
+            />
+            
+            {/* Loading Overlay */}
+            {isLoading && (
+              <div className="camera-overlay loading-overlay">
+                <div className="loading-content">
+                  <div className="loading-spinner"></div>
+                  <p className="loading-text">INITIALIZING CAMERA</p>
+                </div>
+              </div>
+            )}
+
+            {/* Viewfinder Grid */}
+            {isInitialized && !isLoading && showGrid && (
+              <div className="camera-grid">
+                {/* Rule of thirds grid */}
+                <div className="grid-lines">
+                  <div className="grid-line vertical" style={{ left: '33.33%' }}></div>
+                  <div className="grid-line vertical" style={{ left: '66.67%' }}></div>
+                  <div className="grid-line horizontal" style={{ top: '33.33%' }}></div>
+                  <div className="grid-line horizontal" style={{ top: '66.67%' }}></div>
+                </div>
+                
+                {/* Center focus indicator */}
+                <div className="focus-indicator">
+                  <div className="focus-dot"></div>
+                </div>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && !isLoading && (
+              <div className="camera-overlay error-overlay">
+                <div className="error-content">
+                  <AlertTriangle size={48} className="error-icon" />
+                  <h2 className="error-title">CAMERA ERROR</h2>
+                  <p className="error-message">{error}</p>
+                  <button
+                    onClick={() => initializeCamera('environment')}
+                    className="retry-button"
+                  >
+                    RETRY
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Capture Button - Always Visible */}
+          <div className="capture-zone">
+            <button
+              onClick={handleCapturePhoto}
+              disabled={isLoading}
+              className="capture-button desktop-capture"
+              title="Capture Photo (SPACE)"
+            >
+              <div className="capture-ring">
+                <div className="capture-inner">
+                  <Camera size={28} />
+                </div>
+              </div>
+              <span className="capture-label">CAPTURE</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Right Sidebar - Status & Info */}
+        <div className="right-sidebar">
+          <div className="sidebar-section">
+            <h3 className="sidebar-title">Camera Status</h3>
+            <div className="status-info">
+              <div className="status-item">
+                <div className={`status-dot ${isInitialized ? 'active' : ''}`}></div>
+                <span>{isInitialized ? 'Camera Ready' : 'Initializing...'}</span>
+              </div>
+              <div className="status-item">
+                <div className={`status-dot ${cameraCapabilities.hasMultipleCameras ? 'active' : ''}`}></div>
+                <span>{cameraCapabilities.hasMultipleCameras ? `${cameraCapabilities.deviceCount} Cameras` : 'Single Camera'}</span>
+              </div>
+              <div className="status-item">
+                <div className={`status-dot ${cameraCapabilities.hasFlash ? 'active' : 'inactive'}`}></div>
+                <span>Flash {cameraCapabilities.hasFlash ? 'Available' : 'Not Supported'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="sidebar-section">
+            <h3 className="sidebar-title">Photo Settings</h3>
+            <div className="settings-list">
+              <div className="setting-item">
+                <span className="setting-label">Resolution</span>
+                <span className="setting-value">Auto</span>
+              </div>
+              <div className="setting-item">
+                <span className="setting-label">Format</span>
+                <span className="setting-value">JPEG</span>
+              </div>
+              <div className="setting-item">
+                <span className="setting-label">Quality</span>
+                <span className="setting-value">High</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="sidebar-section tips">
+            <h3 className="sidebar-title">Tips</h3>
+            <div className="tips-list">
+              <div className="tip-item">
+                <Sun size={16} className="tip-icon" />
+                <span>Use natural light when possible</span>
+              </div>
+              <div className="tip-item">
+                <Grid3X3 size={16} className="tip-icon" />
+                <span>Use the grid for better composition</span>
+              </div>
+              <div className="tip-item">
+                <Camera size={16} className="tip-icon" />
+                <span>Hold steady for sharp photos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Bottom Controls - Only show on small screens */}
+      <div className="mobile-controls">
+        <div className="mobile-capture-row">
           {onHistoryClick && (
             <button
               onClick={onHistoryClick}
-              onTouchStart={() => {}}
+              className="mobile-action-button"
               disabled={isLoading}
-              style={{
-                position: 'absolute',
-                left: '0',
-                width: '56px',
-                height: '56px',
-                borderRadius: '50%',
-                backgroundColor: 'transparent',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                WebkitTapHighlightColor: 'transparent',
-                touchAction: 'manipulation',
-                transition: 'opacity 0.2s',
-                opacity: isLoading ? 0.5 : 0.9
-              }}
             >
-              <History size={28} color="rgba(245, 245, 245, 0.9)" />
+              <History size={24} />
             </button>
           )}
 
-          {/* Capture button - PERFECTLY CENTERED */}
           <button
             onClick={handleCapturePhoto}
-            onTouchStart={() => {}}
             disabled={isLoading}
-            style={{
-              width: '88px',
-              height: '88px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--color-tasty-white)',
-              border: '5px solid rgba(0, 0, 0, 0.8)',
-              position: 'relative',
-              cursor: 'pointer',
-              WebkitTapHighlightColor: 'transparent',
-              touchAction: 'manipulation',
-              boxShadow: '0 12px 20px -3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-              transition: 'transform 0.15s, box-shadow 0.15s',
-              opacity: isLoading ? 0.6 : 1
-            }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.transform = 'scale(0.92)';
-              e.currentTarget.style.boxShadow = '0 6px 12px -3px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)';
-            }}
-            onMouseUp={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 12px 20px -3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 12px 20px -3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)';
-            }}
-            onTouchEnd={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 12px 20px -3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)';
-            }}
+            className="mobile-capture-button"
           >
-            <div style={{
-              position: 'absolute',
-              top: '6px',
-              left: '6px',
-              right: '6px',
-              bottom: '6px',
-              borderRadius: '50%',
-              background: 'var(--gradient-tasty)',
-              pointerEvents: 'none'
-            }}></div>
+            <div className="mobile-capture-inner"></div>
           </button>
 
-          {/* Right side button - Camera Switch */}
+          {cameraCapabilities.hasMultipleCameras ? (
+            <button
+              onClick={switchCamera}
+              className="mobile-action-button"
+              disabled={isLoading}
+              title={`Switch Camera - ${cameraCapabilities.deviceCount} available`}
+            >
+              <SwitchCamera size={24} />
+            </button>
+          ) : (
+            <div className="mobile-action-spacer"></div>
+          )}
+        </div>
+
+        <div className="mobile-secondary-row">
           <button
-            onClick={switchCamera}
-            onTouchStart={() => {}}
-            disabled={isLoading}
-            style={{
-              position: 'absolute',
-              right: '0',
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              backgroundColor: 'transparent',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              WebkitTapHighlightColor: 'transparent',
-              touchAction: 'manipulation',
-              transition: 'opacity 0.2s',
-              opacity: isLoading ? 0.5 : 0.9
-            }}
+            onClick={() => setShowGrid(!showGrid)}
+            className={`mobile-action-button ${showGrid ? 'active' : ''}`}
+            title="Toggle Grid"
           >
-            <SwitchCamera size={28} color="rgba(245, 245, 245, 0.9)" />
+            <Grid3X3 size={20} />
           </button>
         </div>
 
-        {/* Instructions */}
-        <div style={{ textAlign: 'center' }}>
-          <p style={{ 
-            color: 'rgba(245, 245, 245, 0.6)', 
-            fontSize: '11px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            margin: 0,
-            fontWeight: '500'
-          }}>
-            TAP TO CAPTURE
-          </p>
+        <div className="mobile-instructions">
+          <p>TAP TO CAPTURE · SPACE ON DESKTOP</p>
         </div>
       </div>
 
       <style>{`
+        /* Desktop-First Design */
         .camera-interface {
           position: fixed;
           top: 0;
@@ -555,45 +548,753 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
           right: 0;
           bottom: 0;
           width: 100%;
+          height: 100vh;
+          background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+          display: grid;
+          grid-template-columns: 320px 1fr 280px;
+          grid-template-rows: auto 1fr;
+          grid-template-areas: 
+            "header header header"
+            "sidebar-left camera sidebar-right";
+          overflow: hidden;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        /* Header */
+        .camera-header {
+          grid-area: header;
+          padding: 20px 30px;
+          background: rgba(0, 0, 0, 0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          min-height: 80px;
+          z-index: 1000;
+        }
+
+        .header-button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          color: var(--color-tasty-white);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 14px;
+          font-weight: 500;
+        }
+
+        .header-button:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-1px);
+        }
+
+        .title {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+
+        .title span {
+          color: var(--color-tasty-white);
+          font-weight: 800;
+          font-size: 22px;
+          letter-spacing: 0.15em;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .title-icon {
+          color: var(--color-tasty-yellow);
+        }
+
+        .title-icon-img {
+          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .subtitle {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.6);
+          font-weight: 400;
+          letter-spacing: 0.08em;
+          margin-top: 2px;
+          text-transform: uppercase;
+        }
+
+        .spacer {
+          width: 120px;
+        }
+
+        .desktop-only {
+          display: inline;
+        }
+
+        /* Sidebars */
+        .left-sidebar, .right-sidebar {
+          background: rgba(0, 0, 0, 0.8);
+          backdrop-filter: blur(20px);
+          border-right: 1px solid rgba(255, 255, 255, 0.05);
+          padding: 30px 20px;
+          overflow-y: auto;
+        }
+
+        .right-sidebar {
+          border-right: none;
+          border-left: 1px solid rgba(255, 255, 255, 0.05);
+          grid-area: sidebar-right;
+        }
+
+        .left-sidebar {
+          grid-area: sidebar-left;
+        }
+
+        .sidebar-section {
+          margin-bottom: 32px;
+        }
+
+        .sidebar-section.shortcuts {
+          margin-top: auto;
+        }
+
+        .sidebar-title {
+          color: var(--color-tasty-white);
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 16px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          opacity: 0.9;
+        }
+
+        .control-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .camera-selector {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          margin-bottom: 8px;
+        }
+
+        .selector-label {
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 12px;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .camera-select {
+          padding: 10px 12px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          color: var(--color-tasty-white);
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          outline: none;
+        }
+
+        .camera-select:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .camera-select:focus {
+          border-color: var(--color-tasty-yellow);
+          box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
+
+        .camera-select:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .camera-select option {
+          background: #1a1a1a;
+          color: var(--color-tasty-white);
+          padding: 8px;
+        }
+
+        .control-button {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 16px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 10px;
+          color: rgba(255, 255, 255, 0.8);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 14px;
+          font-weight: 500;
+          position: relative;
+        }
+
+        .control-button:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.15);
+          color: var(--color-tasty-white);
+          transform: translateY(-1px);
+        }
+
+        .control-button.active {
+          background: rgba(255, 215, 0, 0.15);
+          border-color: rgba(255, 215, 0, 0.3);
+          color: var(--color-tasty-yellow);
+        }
+
+        .control-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .active-indicator {
+          position: absolute;
+          right: 8px;
+          width: 8px;
+          height: 8px;
+          background: var(--color-tasty-yellow);
+          border-radius: 50%;
+          box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+        }
+
+        .file-upload-wrapper {
+          position: relative;
+        }
+
+        .file-input {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
           height: 100%;
-          background-color: var(--color-tasty-black);
+          opacity: 0;
+          cursor: pointer;
+          z-index: 1;
+        }
+
+        .file-button {
+          pointer-events: none;
+        }
+
+        /* Keyboard Shortcuts */
+        .shortcut-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .shortcut-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        .shortcut-item kbd {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+          padding: 2px 6px;
+          font-size: 10px;
+          font-weight: 600;
+          color: var(--color-tasty-white);
+        }
+
+        /* Status Info */
+        .status-info, .settings-list, .tips-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .status-item, .setting-item, .tip-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.3);
+          transition: all 0.3s ease;
+        }
+
+        .status-dot.active {
+          background: #10B981;
+          box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+        }
+
+        .status-dot.inactive {
+          background: #EF4444;
+          box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .setting-item {
+          justify-content: space-between;
+        }
+
+        .setting-value {
+          color: var(--color-tasty-yellow);
+          font-weight: 500;
+        }
+
+        .tip-icon {
+          color: var(--color-tasty-yellow);
+          opacity: 0.8;
+        }
+
+        /* Camera Viewport */
+        .camera-content {
+          display: contents;
+        }
+
+        .camera-viewport {
+          grid-area: camera;
+          position: relative;
+          background: #000;
           display: flex;
           flex-direction: column;
           overflow: hidden;
         }
-        
-        .camera-header {
-          padding: 16px 20px;
-          padding-top: max(16px, env(safe-area-inset-top));
-          background-color: rgba(0, 0, 0, 0.9);
+
+        .viewfinder-container {
+          flex: 1;
+          position: relative;
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          min-height: 60px;
-          flex-shrink: 0;
-          z-index: 1000;
+          justify-content: center;
+          min-height: 0;
         }
-        
-        /* Desktop and tablet responsive layout */
-        @media (min-width: 768px) {
+
+        .camera-video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        /* Camera Overlays */
+        .camera-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+        }
+
+        .loading-overlay {
+          background: rgba(0, 0, 0, 0.8);
+          backdrop-filter: blur(4px);
+        }
+
+        .error-overlay {
+          background: rgba(0, 0, 0, 0.9);
+          backdrop-filter: blur(4px);
+        }
+
+        .loading-content, .error-content {
+          text-align: center;
+          padding: 40px;
+        }
+
+        .loading-spinner {
+          width: 64px;
+          height: 64px;
+          border: 4px solid rgba(255, 215, 0, 0.3);
+          border-top: 4px solid var(--color-tasty-yellow);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 0 auto 24px;
+        }
+
+        .loading-text, .error-title {
+          color: var(--color-tasty-white);
+          font-weight: 700;
+          font-size: 16px;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          margin: 0;
+        }
+
+        .error-icon {
+          color: var(--color-tasty-yellow);
+          margin-bottom: 16px;
+        }
+
+        .error-message {
+          color: rgba(255, 255, 255, 0.7);
+          margin: 16px 0 32px;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .retry-button {
+          background: var(--gradient-tasty);
+          color: var(--color-tasty-black);
+          font-weight: 700;
+          padding: 14px 28px;
+          border-radius: 8px;
+          border: none;
+          cursor: pointer;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          font-size: 14px;
+          transition: transform 0.2s ease;
+        }
+
+        .retry-button:hover {
+          transform: translateY(-2px);
+        }
+
+        /* Camera Grid */
+        .camera-grid {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          pointer-events: none;
+          opacity: 0.4;
+          z-index: 5;
+        }
+
+        .grid-lines {
+          width: 100%;
+          height: 100%;
+          position: relative;
+        }
+
+        .grid-line {
+          position: absolute;
+          background: var(--color-tasty-white);
+        }
+
+        .grid-line.vertical {
+          width: 1px;
+          height: 100%;
+        }
+
+        .grid-line.horizontal {
+          height: 1px;
+          width: 100%;
+        }
+
+        .focus-indicator {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 80px;
+          height: 80px;
+          border: 2px solid var(--color-tasty-yellow);
+          border-radius: 50%;
+          opacity: 0.8;
+        }
+
+        .focus-dot {
+          width: 6px;
+          height: 6px;
+          background: var(--color-tasty-yellow);
+          border-radius: 50%;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+
+        /* Desktop Capture Button */
+        .capture-zone {
+          position: absolute;
+          bottom: 40px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 100;
+        }
+
+        .desktop-capture {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          background: rgba(0, 0, 0, 0.8);
+          backdrop-filter: blur(20px);
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          border-radius: 20px;
+          padding: 20px 24px;
+          color: var(--color-tasty-white);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .desktop-capture:hover {
+          border-color: rgba(255, 215, 0, 0.3);
+          transform: translateY(-2px);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .desktop-capture:active {
+          transform: translateY(0);
+        }
+
+        .desktop-capture:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .capture-ring {
+          width: 80px;
+          height: 80px;
+          border: 3px solid rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          transition: all 0.3s ease;
+        }
+
+        .desktop-capture:hover .capture-ring {
+          border-color: var(--color-tasty-yellow);
+          box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .capture-inner {
+          width: 60px;
+          height: 60px;
+          background: var(--gradient-tasty);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--color-tasty-black);
+          transition: all 0.3s ease;
+        }
+
+        .desktop-capture:hover .capture-inner {
+          transform: scale(1.05);
+        }
+
+        .capture-label {
+          font-size: 12px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          opacity: 0.9;
+        }
+
+        /* Mobile Controls - Hidden on Desktop */
+        .mobile-controls {
+          display: none;
+        }
+
+        /* Animations */
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        /* Tablet Responsive */
+        @media (max-width: 1200px) {
           .camera-interface {
-            display: grid;
-            grid-template-columns: 350px 1fr 350px;
-            grid-template-rows: auto 1fr;
-            grid-template-areas: 
-              "header header header"
-              "sidebar-left camera sidebar-right";
+            grid-template-columns: 280px 1fr 260px;
           }
           
-          .camera-header {
-            grid-area: header;
-            padding: 20px 30px;
+          .left-sidebar, .right-sidebar {
+            padding: 24px 16px;
           }
         }
-        
-        @media (min-width: 1200px) {
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
           .camera-interface {
-            grid-template-columns: 400px 1fr 400px;
+            display: flex;
+            flex-direction: column;
+            grid-template-areas: none;
+            grid-template-columns: none;
+            grid-template-rows: none;
+          }
+
+          .camera-header {
+            grid-area: none;
+            padding: 16px 20px;
+            padding-top: max(16px, env(safe-area-inset-top));
+            min-height: 60px;
+          }
+
+          .title span {
+            font-size: 18px;
+          }
+
+          .subtitle {
+            display: none;
+          }
+
+          .desktop-only {
+            display: none;
+          }
+
+          .header-button {
+            padding: 8px;
+            gap: 0;
+          }
+
+          .left-sidebar, .right-sidebar {
+            display: none;
+          }
+
+          .camera-selector {
+            display: none;
+          }
+
+          .camera-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+          }
+
+          .camera-viewport {
+            flex: 1;
+            grid-area: none;
+          }
+
+          .capture-zone {
+            display: none;
+          }
+
+          .mobile-controls {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 16px;
+            z-index: 1000;
+          }
+
+          .mobile-capture-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+          }
+
+          .mobile-capture-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--color-tasty-white);
+            border: 4px solid rgba(0, 0, 0, 0.8);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+          }
+
+          .mobile-capture-button:active {
+            transform: scale(0.95);
+          }
+
+          .mobile-capture-inner {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border-radius: 50%;
+            background: var(--gradient-tasty);
+          }
+
+          .mobile-action-button {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .mobile-action-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--color-tasty-white);
+          }
+
+          .mobile-action-button.active {
+            background: rgba(255, 215, 0, 0.15);
+            border-color: rgba(255, 215, 0, 0.3);
+            color: var(--color-tasty-yellow);
+          }
+
+          .mobile-action-spacer {
+            width: 52px;
+            height: 52px;
+          }
+
+          .mobile-secondary-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+          }
+
+          .mobile-file-upload {
+            position: relative;
+          }
+
+          .mobile-file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 1;
+          }
+
+          .mobile-instructions {
+            text-align: center;
+          }
+
+          .mobile-instructions p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 0;
+            font-weight: 500;
           }
         }
       `}</style>

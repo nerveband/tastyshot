@@ -123,6 +123,23 @@ export const PhotoHistory: React.FC<PhotoHistoryProps> = ({
 
       {/* Content */}
       <div className="history-content">
+        {/* Storage Info */}
+        <div className="bg-amber-900/20 border border-amber-600/40 rounded-lg p-3 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">📱</span>
+            <h3 className="text-amber-200 font-semibold text-sm uppercase tracking-wider">Storage Info</h3>
+          </div>
+          <p className="text-amber-300/90 text-sm leading-relaxed">
+            Only your last <strong>20 photos</strong> are kept in history to save device storage. 
+            Remember to <strong>save your favorites</strong> to your device before they're automatically removed!
+          </p>
+          {photos.length > 0 && (
+            <p className="text-amber-400/70 text-xs mt-2">
+              Currently showing {photos.length} photo{photos.length !== 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
+
         {photos.length === 0 ? (
           // Empty State
           <div className="text-center py-16">

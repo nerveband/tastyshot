@@ -119,7 +119,7 @@ const processWithGemini = async ({ model, prompt, inputFile, signal }: {
                       {
                         inlineData: {
                           data: inputFile.split(',')[1],
-                          mimeType: 'image/jpeg'
+                          mimeType: inputFile.startsWith('data:image/png') ? 'image/png' : 'image/jpeg'
                         }
                       }
                     ]
@@ -131,6 +131,19 @@ const processWithGemini = async ({ model, prompt, inputFile, signal }: {
 
         const response = await Promise.race([modelPromise, timeoutPromise]);
 
+        console.log('Gemini API response received:', JSON.stringify({
+          candidatesCount: response.candidates?.length || 0,
+          firstCandidate: response.candidates?.[0] ? {
+            role: response.candidates[0].content?.role,
+            partsCount: response.candidates[0].content?.parts?.length || 0,
+            parts: response.candidates[0].content?.parts?.map(p => ({
+              hasText: !!p.text,
+              hasInlineData: !!p.inlineData,
+              textLength: p.text?.length || 0
+            }))
+          } : null
+        }, null, 2));
+
         if (!response.candidates || response.candidates.length === 0) {
           throw new Error('No candidates in response');
         }
@@ -139,7 +152,15 @@ const processWithGemini = async ({ model, prompt, inputFile, signal }: {
           p => p.inlineData
         );
         if (!inlineDataPart?.inlineData) {
-          throw new Error('No inline data found in response');
+          // Try to get text response as well for debugging
+          const textPart = response.candidates[0]?.content?.parts?.find(p => p.text);
+          const textResponse = textPart?.text || 'No text response available';
+          console.error('No inline data found. Text response:', textResponse);
+          
+          // Create a special error that includes the text response
+          const error = new Error('No inline data found in response');
+          (error as any).geminiTextResponse = textResponse;
+          throw error;
         }
 
         return 'data:image/png;base64,' + inlineDataPart.inlineData.data;
@@ -194,6 +215,15 @@ class GeminiService {
       };
     } catch (error) {
       console.error('Gemini service error:', error);
+      
+      // Check if this is a special error with Gemini's text response
+      if (error instanceof Error && (error as any).geminiTextResponse) {
+        const textResponse = (error as any).geminiTextResponse;
+        const enhancedError = new Error(error.message);
+        (enhancedError as any).geminiTextResponse = textResponse;
+        throw enhancedError;
+      }
+      
       throw new Error(error instanceof Error ? error.message : 'Unknown error occurred');
     }
   }

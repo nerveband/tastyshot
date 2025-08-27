@@ -5,16 +5,65 @@ export class CameraService {
   private videoElement: HTMLVideoElement | null = null;
   
   // iOS-optimized camera constraints
-  private getConstraints(facingMode: 'user' | 'environment' = 'environment'): CameraConstraints {
+  private getConstraints(facingMode: 'user' | 'environment' = 'environment', deviceId?: string): CameraConstraints {
     // Use flexible constraints that work better on iOS
-    return {
-      video: {
-        facingMode: { ideal: facingMode },
-        width: { ideal: 1280, max: 1920 },
-        height: { ideal: 720, max: 1080 },
-        frameRate: { ideal: 30, max: 60 },
-      },
+    const videoConstraints: any = {
+      width: { ideal: 1280, max: 1920 },
+      height: { ideal: 720, max: 1080 },
+      frameRate: { ideal: 30, max: 60 },
     };
+
+    // Use deviceId if provided, otherwise use facingMode
+    if (deviceId) {
+      videoConstraints.deviceId = { exact: deviceId };
+    } else {
+      videoConstraints.facingMode = { ideal: facingMode };
+    }
+
+    return {
+      video: videoConstraints,
+    };
+  }
+
+  // Initialize camera with specific device ID
+  async initializeCameraWithDevice(
+    videoElement: HTMLVideoElement,
+    deviceId: string
+  ): Promise<void> {
+    try {
+      // Stop existing stream if any
+      this.stopCamera();
+
+      const constraints = this.getConstraints('environment', deviceId);
+      
+      // Request camera access
+      this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      // Configure video element with iOS optimizations
+      videoElement.srcObject = this.stream;
+      videoElement.autoplay = true;
+      videoElement.playsInline = true; // Critical for iOS
+      videoElement.muted = true; // Prevent audio issues
+      videoElement.setAttribute('webkit-playsinline', 'true'); // Legacy iOS support
+      videoElement.setAttribute('playsinline', 'true'); // Modern iOS support
+      videoElement.controls = false; // Hide native controls
+      
+      this.videoElement = videoElement;
+
+      // Wait for video to start playing
+      await new Promise<void>((resolve, reject) => {
+        videoElement.onloadedmetadata = () => {
+          videoElement.play()
+            .then(() => resolve())
+            .catch(reject);
+        };
+        videoElement.onerror = reject;
+      });
+
+    } catch (error) {
+      console.error('Camera initialization failed:', error);
+      throw this.handleCameraError(error);
+    }
   }
 
   // Initialize camera with iOS optimizations

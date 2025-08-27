@@ -72,6 +72,15 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
       <div className="main-content">
         {/* Logo/Title */}
         <div className="title-section">
+          <div className="logo-container">
+            <img 
+              src="/tastyshot-icon.png" 
+              alt="TastyShot" 
+              className="app-logo"
+              width="120"
+              height="120"
+            />
+          </div>
           <h1 className="main-title">TastyShot</h1>
           <p className="subtitle">Transform your food photos with AI</p>
         </div>
@@ -243,6 +252,30 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
         
         .title-section {
           text-align: center;
+        }
+        
+        .logo-container {
+          margin-bottom: 32px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        
+        .app-logo {
+          display: block;
+          filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4));
+          transition: all 0.3s ease;
+          animation: float 6s ease-in-out infinite;
+        }
+        
+        .app-logo:hover {
+          filter: drop-shadow(0 12px 32px rgba(255, 107, 53, 0.3));
+          transform: translateY(-4px) scale(1.05);
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
         }
         
         .main-title {
@@ -479,6 +512,15 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
             gap: 60px;
           }
           
+          .logo-container {
+            margin-bottom: 28px;
+          }
+          
+          .app-logo {
+            width: 100px !important;
+            height: 100px !important;
+          }
+          
           .main-title {
             font-size: 56px;
           }
@@ -526,6 +568,15 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           
           .main-content {
             gap: 40px;
+          }
+          
+          .logo-container {
+            margin-bottom: 24px;
+          }
+          
+          .app-logo {
+            width: 80px !important;
+            height: 80px !important;
           }
           
           .main-title {

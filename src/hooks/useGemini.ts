@@ -14,6 +14,7 @@ export const useGemini = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [geminiTextResponse, setGeminiTextResponse] = useState<string | null>(null);
 
   // Available Gemini models
   const availableModels = GEMINI_MODELS;
@@ -73,6 +74,7 @@ export const useGemini = () => {
     setIsProcessing(true);
     setProgress(['Initializing Gemini AI...']);
     setError(null);
+    setGeminiTextResponse(null);
 
     try {
       setProgress(prev => [...prev, 'Processing image...']);
@@ -92,7 +94,16 @@ export const useGemini = () => {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Processing failed';
-      setError(errorMessage);
+      
+      // Check if Gemini provided a text response instead of image
+      if (err instanceof Error && (err as any).geminiTextResponse) {
+        const textResponse = (err as any).geminiTextResponse;
+        setGeminiTextResponse(textResponse);
+        setError(`Gemini responded with text instead of image: ${errorMessage}`);
+      } else {
+        setError(errorMessage);
+      }
+      
       setIsProcessing(false);
       setProgress([]);
       return null;
@@ -103,12 +114,14 @@ export const useGemini = () => {
   // Clear error
   const clearError = useCallback(() => {
     setError(null);
+    setGeminiTextResponse(null);
   }, []);
 
   return {
     isProcessing,
     progress,
     error,
+    geminiTextResponse,
     processImage,
     clearError,
     availableModels,
