@@ -101,6 +101,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   const [comparisonMode, setComparisonMode] = useState(true); // Enable by default
   const [selectedModel, setSelectedModel] = useState<GeminiModel | AIModel | null>(null);
   const [modelType, setModelType] = useState<'gemini' | 'replicate'>('gemini');
+  const [showTimeline, setShowTimeline] = useState(false);
 
   const gemini = useGemini();
   const replicate = useReplicate();
@@ -482,57 +483,72 @@ The image has been processed successfully - the download feature may not work in
                 Save Photo
               </button>
               
-              <div className="upscale-buttons">
-                <button
-                  onClick={() => handleUpscale('x2')}
-                  disabled={currentService.isProcessing}
-                  className="upscale-button"
-                >
-                  Upscale 2x
-                </button>
-                <button
-                  onClick={() => handleUpscale('x4')}
-                  disabled={currentService.isProcessing}
-                  className="upscale-button"
-                >
-                  Upscale 4x
-                </button>
-              </div>
+              {/* Upscale buttons only shown with Replicate feature flag */}
+              {enableReplicateModels && (
+                <div className="upscale-buttons">
+                  <button
+                    onClick={() => handleUpscale('x2')}
+                    disabled={currentService.isProcessing}
+                    className="upscale-button"
+                  >
+                    Upscale 2x
+                  </button>
+                  <button
+                    onClick={() => handleUpscale('x4')}
+                    disabled={currentService.isProcessing}
+                    className="upscale-button"
+                  >
+                    Upscale 4x
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
 
         {/* Controls Sidebar */}
         <div className="controls-sidebar">
-          {/* Compare Toggle Switch */}
+          {/* View Mode and Timeline Controls */}
           <div className="sidebar-section">
             <div className="section-title">View Mode</div>
-            <button
-              onClick={() => setComparisonMode(!comparisonMode)}
-              className="toggle-button"
-              style={{
-                backgroundColor: comparisonMode ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                border: `1px solid ${comparisonMode ? 'var(--color-tasty-yellow)' : 'rgba(255, 255, 255, 0.1)'}`,
-                color: comparisonMode ? 'var(--color-tasty-yellow)' : 'rgba(255, 255, 255, 0.8)',
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-2 rounded-full transition-all relative"
-                  style={{
-                    backgroundColor: comparisonMode ? 'var(--color-tasty-yellow)' : 'rgba(255, 255, 255, 0.3)',
-                  }}
-                >
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => setComparisonMode(!comparisonMode)}
+                className="toggle-button"
+                style={{
+                  backgroundColor: comparisonMode ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                  border: `1px solid ${comparisonMode ? 'var(--color-tasty-yellow)' : 'rgba(255, 255, 255, 0.1)'}`,
+                  color: comparisonMode ? 'var(--color-tasty-yellow)' : 'rgba(255, 255, 255, 0.8)',
+                }}
+              >
+                <div className="flex items-center gap-2">
                   <div
-                    className="w-2 h-2 rounded-full bg-white transition-all absolute -top-0.5"
+                    className="w-4 h-2 rounded-full transition-all relative"
                     style={{
-                      left: comparisonMode ? '8px' : '0px',
+                      backgroundColor: comparisonMode ? 'var(--color-tasty-yellow)' : 'rgba(255, 255, 255, 0.3)',
                     }}
-                  />
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full bg-white transition-all absolute -top-0.5"
+                      style={{
+                        left: comparisonMode ? '8px' : '0px',
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium">{comparisonMode ? 'Compare' : 'Single'}</span>
                 </div>
-                <span className="text-sm font-medium">{comparisonMode ? 'Compare' : 'Single'}</span>
-              </div>
-            </button>
+              </button>
+              
+              {/* Timeline Button - Now in View Mode section */}
+              {editingHistory.length > 1 && (
+                <button
+                  onClick={() => setShowTimeline(true)}
+                  className="timeline-button-inline"
+                >
+                  📸 View Timeline ({editingHistory.length})
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Prompt Editor - Moved to Top */}
@@ -637,65 +653,7 @@ The image has been processed successfully - the download feature may not work in
           </div>
 
 
-          {/* Timeline Button */}
-          {editingHistory.length > 1 && (
-            <div className="sidebar-section">
-              <button
-                onClick={() => {
-                  if (timelineRef.current) {
-                    timelineRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                  }
-                }}
-                className="timeline-button"
-              >
-                📸 View Timeline ({editingHistory.length})
-              </button>
-            </div>
-          )}
 
-          {/* Editing Timeline */}
-          {editingHistory.length > 1 && (
-            <div className="sidebar-section">
-              <div className="section-title">Editing Timeline</div>
-              <div className="timeline-container" ref={timelineRef}>
-                {editingHistory.map((iteration, index) => (
-                  <div key={iteration.id} className="timeline-item">
-                    <div className="timeline-header">
-                      <div className="timeline-number">{index + 1}</div>
-                      <div className="timeline-info">
-                        <div className="timeline-prompt">{iteration.prompt}</div>
-                        <div className="timeline-time">
-                          {iteration.timestamp.toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="timeline-image-container">
-                      <img
-                        src={iteration.image}
-                        alt={`Edit ${index + 1}`}
-                        className="timeline-image"
-                        onClick={() => {
-                          setEditedImage(index === 0 ? null : iteration.image);
-                          if (index > 0) {
-                            onEditComplete(iteration.image);
-                          }
-                        }}
-                      />
-                      {iteration.analysis && (
-                        <div className="timeline-analysis">
-                          <Bot size={10} className="text-yellow-500" />
-                          <span className="text-xs text-gray-400 truncate">{iteration.analysis}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* AI Analysis */}
           {modelType === 'gemini' && aiAnalysis && (
@@ -768,6 +726,66 @@ The image has been processed successfully - the download feature may not work in
           </div>
         )}
       </div>
+
+      {/* Full-Screen Timeline Modal */}
+      {showTimeline && (
+        <div className="timeline-modal-overlay">
+          <div className="timeline-modal">
+            <div className="timeline-modal-header">
+              <h2 className="timeline-modal-title">Editing Timeline</h2>
+              <button
+                onClick={() => setShowTimeline(false)}
+                className="timeline-modal-close"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="timeline-modal-content">
+              <div className="timeline-grid">
+                {editingHistory.map((iteration, index) => (
+                  <div key={iteration.id} className="timeline-card">
+                    <div className="timeline-card-header">
+                      <div className="timeline-card-number">{index + 1}</div>
+                      <div className="timeline-card-time">
+                        {iteration.timestamp.toLocaleTimeString([], { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="timeline-card-image-container">
+                      <img
+                        src={iteration.image}
+                        alt={`Edit ${index + 1}`}
+                        className="timeline-card-image"
+                        onClick={() => {
+                          setEditedImage(index === 0 ? null : iteration.image);
+                          if (index > 0) {
+                            onEditComplete(iteration.image);
+                          }
+                          setShowTimeline(false);
+                        }}
+                      />
+                    </div>
+                    
+                    <div className="timeline-card-content">
+                      <div className="timeline-card-prompt">{iteration.prompt}</div>
+                      {iteration.analysis && (
+                        <div className="timeline-card-analysis">
+                          <Bot size={12} className="text-yellow-500" />
+                          <span className="text-xs text-gray-400">{iteration.analysis}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .photo-editor {
@@ -1418,6 +1436,250 @@ The image has been processed successfully - the download feature may not work in
           
           .controls-sidebar {
             padding: 24px;
+          }
+        }
+        
+        /* Timeline Modal Styles */
+        .timeline-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.9);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          backdrop-filter: blur(10px);
+        }
+        
+        .timeline-modal {
+          background: var(--color-tasty-black);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          width: 100%;
+          max-width: 90vw;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+        
+        .timeline-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .timeline-modal-title {
+          font-size: 1.25rem;
+          font-weight: bold;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--color-tasty-white);
+        }
+        
+        .timeline-modal-close {
+          background: none;
+          border: none;
+          color: var(--color-tasty-white);
+          font-size: 1.5rem;
+          cursor: pointer;
+          padding: 8px;
+          border-radius: 50%;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
+        
+        .timeline-modal-close:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--color-tasty-yellow);
+        }
+        
+        .timeline-modal-content {
+          flex: 1;
+          padding: 20px;
+          overflow-y: auto;
+        }
+        
+        .timeline-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 16px;
+        }
+        
+        .timeline-card {
+          background: rgba(31, 41, 55, 0.4);
+          border: 1px solid rgba(75, 85, 99, 0.3);
+          border-radius: 8px;
+          overflow: hidden;
+          transition: all 0.2s ease;
+          cursor: pointer;
+        }
+        
+        .timeline-card:hover {
+          background: rgba(31, 41, 55, 0.6);
+          border-color: var(--color-tasty-yellow);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+        }
+        
+        .timeline-card-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px;
+          background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .timeline-card-number {
+          width: 24px;
+          height: 24px;
+          background: var(--color-tasty-yellow);
+          color: var(--color-tasty-black);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: bold;
+        }
+        
+        .timeline-card-time {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .timeline-card-image-container {
+          aspect-ratio: 16/9;
+          overflow: hidden;
+          position: relative;
+        }
+        
+        .timeline-card-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.2s ease;
+        }
+        
+        .timeline-card:hover .timeline-card-image {
+          transform: scale(1.05);
+        }
+        
+        .timeline-card-content {
+          padding: 12px;
+        }
+        
+        .timeline-card-prompt {
+          font-size: 12px;
+          color: white;
+          font-weight: 500;
+          line-height: 1.4;
+          margin-bottom: 8px;
+        }
+        
+        .timeline-card-analysis {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 8px;
+          background: rgba(0, 0, 0, 0.3);
+          border-radius: 4px;
+        }
+        
+        .timeline-button-inline {
+          width: 100%;
+          padding: 8px 12px;
+          background: rgba(59, 130, 246, 0.1);
+          border: 1px solid rgba(59, 130, 246, 0.3);
+          border-radius: 6px;
+          color: white;
+          font-size: 12px;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .timeline-button-inline:hover {
+          background: rgba(59, 130, 246, 0.2);
+          border-color: rgba(59, 130, 246, 0.5);
+          transform: translateY(-1px);
+        }
+        
+        /* Mobile adjustments for timeline modal */
+        @media (max-width: 767px) {
+          .timeline-modal {
+            max-width: 95vw;
+            max-height: 95vh;
+          }
+          
+          .timeline-modal-header {
+            padding: 16px;
+          }
+          
+          .timeline-modal-title {
+            font-size: 1rem;
+          }
+          
+          .timeline-modal-content {
+            padding: 16px;
+          }
+          
+          .timeline-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+          }
+          
+          .timeline-card-header {
+            padding: 10px;
+          }
+          
+          .timeline-card-content {
+            padding: 10px;
+          }
+          
+          .timeline-card-prompt {
+            font-size: 11px;
+          }
+        }
+        
+        /* Fix comparison slider alignment issues */
+        .comparison-wrapper {
+          position: relative;
+          display: flex !important;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        @media (max-width: 767px) {
+          .comparison-wrapper {
+            margin: 0;
+            padding: 0;
+            border-radius: 8px;
+            height: auto;
+            min-height: 200px;
+          }
+          
+          /* Ensure comparison slider images are properly contained */
+          .comparison-wrapper [data-testid="rcs-container"] {
+            height: 100% !important;
+            min-height: 200px !important;
+          }
+          
+          .comparison-wrapper [data-testid="rcs-container"] > div {
+            height: 100% !important;
           }
         }
       `}</style>
