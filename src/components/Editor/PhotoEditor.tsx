@@ -23,7 +23,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   const [showCustomPrompt, setShowCustomPrompt] = useState(false);
   const [comparisonMode, setComparisonMode] = useState(true); // Enable by default
   const [selectedModel, setSelectedModel] = useState<GeminiModel | AIModel | null>(null);
-  const [modelType, setModelType] = useState<'gemini' | 'replicate'>('gemini');
+  const [modelType, setModelType] = useState<'gemini' | 'replicate'>('replicate');
 
   const gemini = useGemini();
   const replicate = useReplicate();
@@ -31,13 +31,13 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   // Get current service based on model type
   const currentService = modelType === 'gemini' ? gemini : replicate;
   
-  // Combined available models (Gemini first, then Replicate)
+  // Combined available models (Replicate first, then Gemini)
   const allAvailableModels = [
-    ...gemini.availableModels.map(model => ({ ...model, type: 'gemini' as const })),
-    ...replicate.availableModels.map(model => ({ ...model, type: 'replicate' as const }))
+    ...replicate.availableModels.map(model => ({ ...model, type: 'replicate' as const })),
+    ...gemini.availableModels.map(model => ({ ...model, type: 'gemini' as const }))
   ];
 
-  // Set default model if none selected (Gemini first)
+  // Set default model if none selected (Replicate first)
   React.useEffect(() => {
     if (!selectedModel && allAvailableModels.length > 0) {
       const defaultModel = allAvailableModels[0];
@@ -316,9 +316,8 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
                 boxShadow: '0 8px 24px rgba(255, 215, 0, 0.4)'
               }}
             >
-              <Share size={24} />
-              <span>SAVE TO PHOTOS</span>
               <Download size={24} />
+              <span>SAVE TO PHOTOS</span>
             </button>
           </div>
         )}

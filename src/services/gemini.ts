@@ -20,7 +20,7 @@ export const GEMINI_MODELS: GeminiModel[] = [
   {
     id: 'gemini-2.5-flash-image-preview',
     name: 'Gemini 2.5 Flash Image Preview',
-    description: 'Advanced multimodal AI model with image understanding and editing capabilities',
+    description: 'Advanced vision model for image analysis and description (Note: Returns analysis, not edited images)',
     provider: 'Google',
     modelId: 'gemini-2.5-flash-image-preview',
     defaultSettings: {

@@ -114,10 +114,12 @@ export default async function handler(req, res) {
             }
           }
           
-          // If no image in response, try to use text response as instruction for image generation
+          // If no image in response, return original image with explanation
           if (!outputImage && response.text) {
             console.log('No image in response, text:', response.text);
-            // For now, we'll return the original image as Gemini doesn't generate new images directly
+            console.log('NOTE: Gemini 2.5 Flash Image Preview is a vision model for analysis, not image editing');
+            // Gemini is a vision model that analyzes images, not an image editing model
+            // It returns analysis/description, not modified images
             outputImage = input.image;
           }
           
