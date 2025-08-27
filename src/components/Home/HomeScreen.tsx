@@ -99,8 +99,15 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
       <div className="main-content">
         {/* Welcome Section */}
         <div className="welcome-section">
-          <h2 className="welcome-title">Transform your food photos</h2>
-          <p className="welcome-subtitle">Capture or upload a photo to get started with AI enhancement</p>
+          <h2 className="welcome-title">
+            <span className="title-line-1">Transform your</span>
+            <span className="title-line-2">food photos</span>
+          </h2>
+          <div className="made-by-header">
+            <a href="https://ashrafali.net" target="_blank" rel="noopener noreferrer">
+              Made by Ashraf ❤️
+            </a>
+          </div>
         </div>
 
         {/* Action Cards */}
@@ -169,12 +176,6 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           </div>
         </div>
 
-        {/* Made By Credit */}
-        <div className="made-by">
-          <a href="https://ashrafali.net" target="_blank" rel="noopener noreferrer">
-            Made by Ashraf ❤️
-          </a>
-        </div>
       </div>
 
       {/* Timeline Photo Art */}
@@ -305,17 +306,37 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
         .welcome-title {
           font-size: 32px;
           font-weight: 700;
-          margin: 0 0 12px 0;
+          margin: 0 0 16px 0;
           text-transform: uppercase;
           letter-spacing: 0.02em;
-          line-height: 1.2;
+          line-height: 1.1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
         }
         
-        .welcome-subtitle {
-          font-size: 16px;
-          color: rgba(255, 255, 255, 0.8);
-          margin: 0;
-          line-height: 1.5;
+        .title-line-1,
+        .title-line-2 {
+          display: block;
+        }
+        
+        .made-by-header {
+          margin-top: 8px;
+        }
+        
+        .made-by-header a {
+          color: rgba(255, 255, 255, 0.7);
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 500;
+          transition: all 0.2s ease;
+          text-transform: none;
+          letter-spacing: normal;
+        }
+        
+        .made-by-header a:hover {
+          color: var(--color-tasty-yellow);
+          text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
         }
         
         /* Action Cards */
@@ -459,25 +480,6 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           100% { transform: rotate(360deg); }
         }
         
-        /* Made By Credit */
-        .made-by {
-          margin-top: auto;
-          text-align: center;
-          padding: 20px 0;
-        }
-        
-        .made-by a {
-          color: rgba(255, 255, 255, 0.6);
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 500;
-          transition: all 0.2s ease;
-        }
-        
-        .made-by a:hover {
-          color: var(--color-tasty-yellow);
-          text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
-        }
         
         .desktop-only {
           display: block;
@@ -517,10 +519,6 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           
           .welcome-title {
             font-size: 24px;
-          }
-          
-          .welcome-subtitle {
-            font-size: 14px;
           }
           
           .action-cards {
@@ -572,8 +570,8 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           height: 100%;
           object-fit: cover;
           object-position: center;
-          opacity: 0.3;
-          filter: brightness(0.8) contrast(1.2);
+          opacity: 1;
+          filter: none;
         }
         
         /* Tablet */
