@@ -63,6 +63,50 @@ class GeminiService {
   }
 
   /**
+   * Compress image to prevent 413 errors
+   */
+  private async compressImage(dataURL: string, maxSizeMB: number = 4): Promise<string> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        
+        // Calculate new dimensions to keep under size limit
+        let { width, height } = img;
+        const maxDimension = 1024;
+        
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          } else {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Try different quality levels until under size limit
+        let quality = 0.8;
+        let result = canvas.toDataURL('image/jpeg', quality);
+        
+        while (result.length > maxSizeMB * 1024 * 1024 && quality > 0.1) {
+          quality -= 0.1;
+          result = canvas.toDataURL('image/jpeg', quality);
+        }
+        
+        resolve(result);
+      };
+      img.src = dataURL;
+    });
+  }
+
+  /**
    * Process an image with Gemini AI
    */
   async processImage(
@@ -74,7 +118,15 @@ class GeminiService {
       console.log('=== GEMINI SERVICE: processImage ===');
       console.log('Model:', model.name);
       console.log('Prompt:', prompt);
-      console.log('Image size:', imageDataURL.length);
+      console.log('Original image size:', imageDataURL.length);
+
+      // Compress image if it's too large (prevent 413 errors)
+      let processedImage = imageDataURL;
+      if (imageDataURL.length > 4 * 1024 * 1024) { // 4MB limit
+        console.log('Compressing large image...');
+        processedImage = await this.compressImage(imageDataURL);
+        console.log('Compressed image size:', processedImage.length);
+      }
 
       // Always use generateContent action for gemini-2.5-flash-image-preview
       const action = 'generateContent';
@@ -84,7 +136,7 @@ class GeminiService {
         action,
         model: model.modelId,
         input: {
-          image: imageDataURL,
+          image: processedImage,
           prompt: prompt
         }
       };
