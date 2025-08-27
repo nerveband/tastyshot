@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useCamera } from '../../hooks/useCamera';
-import { SwitchCamera, AlertTriangle, Camera, History, Info, ArrowLeft, Zap, Grid3X3, Sun } from 'lucide-react';
+import { SwitchCamera, AlertTriangle, Camera, History, ArrowLeft, Zap, Grid3X3, Sun } from 'lucide-react';
 
 interface CameraInterfaceProps {
   onPhotoCapture: (photoDataURL: string) => void;
@@ -63,21 +63,31 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
     }
   }, [selectedCameraId]);
 
-  // Initialize camera on mount - wait for user interaction on iOS
+  // Initialize camera on mount - auto-request permissions
   useEffect(() => {
     if (!isSupported) {
       onError('Camera not supported on this device');
       return;
     }
 
-    // Detect capabilities but don't initialize camera automatically
-    // This prevents permission dialogs from appearing without user interaction
-    detectCameraCapabilities();
+    // Auto-initialize camera with user-friendly fallback
+    const autoInitCamera = async () => {
+      try {
+        await detectCameraCapabilities();
+        // Auto-initialize camera for better UX
+        await initializeCamera('environment');
+      } catch (error) {
+        console.log('Auto camera init failed, will show permission prompt:', error);
+        // Don't throw error, just show the permission overlay
+      }
+    };
+
+    autoInitCamera();
 
     return () => {
       stopCamera();
     };
-  }, [isSupported, onError, detectCameraCapabilities, stopCamera]);
+  }, [isSupported, onError, detectCameraCapabilities, stopCamera, initializeCamera]);
 
   // Handle errors
   useEffect(() => {
@@ -199,50 +209,10 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
         )}
         
         <div className="title">
-          <img src="/tastyshot-icon.png" alt="TastyShot" className="title-icon-img" width="32" height="32" />
-          <span>TASTYSHOT</span>
-          <div className="subtitle">AI Food Photography</div>
+          <span>CAMERA</span>
         </div>
         
         <div className="header-controls">
-          <button
-            onClick={() => {
-              const helpText = `TastyShot Camera Help:
-
-📸 CAPTURE CONTROLS:
-• SPACE or Click - Take photo
-• Tap on mobile - Capture
-
-🎯 CAMERA CONTROLS:
-• C - Switch camera (${cameraCapabilities.hasMultipleCameras ? `${cameraCapabilities.deviceCount} available` : 'single camera'})
-• G - Toggle grid overlay
-• Flash - ${cameraCapabilities.hasFlash ? 'Available' : 'Not supported on web'}
-
-⌨️ KEYBOARD SHORTCUTS:
-• SPACE - Capture photo  
-• G - Toggle grid
-• C - Switch camera
-• H - View history
-
-💡 PHOTO TIPS:
-• Use natural light when possible
-• Enable grid for rule of thirds composition
-• Hold device steady for sharp photos
-• Clean camera lens for best quality
-
-📱 DEVICE INFO:
-• ${cameraCapabilities.deviceCount} camera(s) detected
-• Resolution: Auto (optimized)
-• Format: JPEG, High Quality`;
-              
-              alert(helpText);
-            }}
-            className="header-button"
-            title="Camera Help & Tips"
-          >
-            <Info size={20} />
-            <span className="desktop-only">Help</span>
-          </button>
         </div>
       </div>
 
@@ -630,22 +600,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
           gap: 12px;
         }
 
-        .title-icon {
-          color: var(--color-tasty-yellow);
-        }
-
-        .title-icon-img {
-          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-        }
-
-        .subtitle {
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.6);
-          font-weight: 400;
-          letter-spacing: 0.08em;
-          margin-top: 2px;
-          text-transform: uppercase;
-        }
 
         .spacer {
           width: 120px;
@@ -910,6 +864,12 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
           height: 100%;
           object-fit: cover;
           display: block;
+          transform: scale(1);
+          /* Ensure video doesn't overflow on mobile */
+          max-width: 100%;
+          max-height: 100%;
+          /* Prevent video from covering UI chrome */
+          padding-bottom: env(safe-area-inset-bottom);
         }
 
         /* Camera Overlays */
@@ -1230,10 +1190,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             font-size: 18px;
           }
 
-          .subtitle {
-            display: none;
-          }
-
           .desktop-only {
             display: none;
           }
@@ -1260,6 +1216,15 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
           .camera-viewport {
             flex: 1;
             grid-area: none;
+            /* Ensure mobile controls don't get covered */
+            max-height: calc(100vh - 60px - 140px); /* Header height - Controls height */
+            overflow: hidden;
+          }
+
+          .viewfinder-container {
+            /* Reset any desktop margins on mobile */
+            margin-bottom: 0;
+            height: 100%;
           }
 
           .capture-zone {
@@ -1276,6 +1241,8 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             gap: 16px;
             z-index: 1000;
+            position: relative;
+            flex-shrink: 0;
           }
 
           .mobile-capture-row {

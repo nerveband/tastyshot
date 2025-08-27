@@ -27,6 +27,7 @@ function App() {
   // Handle photo selection (from upload or drag & drop)
   const handlePhotoSelect = (photoDataURL: string) => {
     setCapturedImage(photoDataURL);
+    setError(null); // Clear any existing errors
     setCurrentView('editing');
   };
 
@@ -148,7 +149,7 @@ function App() {
   // Return to home view
   const returnToHome = () => {
     setCurrentView('home');
-    setCapturedImage(null);
+    // Don't clear capturedImage to allow re-editing after going back
     setError(null);
   };
 
@@ -164,9 +165,9 @@ function App() {
     return (
       <div style={{
         position: 'fixed',
-        top: '24px',
-        left: '24px',
-        right: '24px',
+        top: 'max(24px, env(safe-area-inset-top) + 24px)',
+        left: 'max(24px, env(safe-area-inset-left) + 24px)',
+        right: 'max(24px, env(safe-area-inset-right) + 24px)',
         zIndex: 1000,
         maxWidth: '500px',
         margin: '0 auto',

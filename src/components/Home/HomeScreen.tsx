@@ -68,57 +68,64 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
 
   return (
     <div className="home-screen">
-      {/* Main Content Container */}
-      <div className="main-content">
-        {/* Logo/Title */}
-        <div className="title-section">
-          <div className="logo-container">
+      {/* App Header */}
+      <div className="app-header">
+        <div className="header-content">
+          <div className="app-brand">
             <img 
               src="/tastyshot-icon.png" 
               alt="TastyShot" 
-              className="app-logo"
-              width="120"
-              height="120"
+              className="header-logo"
+              width="32"
+              height="32"
             />
-          </div>
-          <h1 className="main-title">TastyShot</h1>
-          <p className="subtitle">Transform your food photos with AI</p>
-        </div>
-
-        {/* Main Options */}
-        <div className="options-container">
-          {/* Camera Option */}
-          <div className="option-item">
-            <button
-              className="camera-btn"
-              onClick={onCameraLaunch}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.05)';
-                e.currentTarget.style.boxShadow = '0 12px 48px rgba(255, 107, 53, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.boxShadow = '0 8px 32px rgba(255, 107, 53, 0.3)';
-              }}
-            >
-              📷
-            </button>
-            <div className="option-info">
-              <h3>Launch Camera</h3>
+            <div className="brand-text">
+              <h1 className="app-name">TastyShot</h1>
+              <p className="app-tagline">AI Food Photography</p>
             </div>
           </div>
+          
+          <button
+            className="history-nav-btn"
+            onClick={onHistoryClick}
+            title="View Photo History"
+          >
+            📸 History
+          </button>
+        </div>
+      </div>
 
-          {/* OR Divider */}
-          <div className="divider">
-            <div className="divider-line" />
-            <span className="divider-text">or</span>
-            <div className="divider-line" />
+      {/* Main Content Container */}
+      <div className="main-content">
+        {/* Welcome Section */}
+        <div className="welcome-section">
+          <h2 className="welcome-title">Transform your food photos</h2>
+          <p className="welcome-subtitle">Capture or upload a photo to get started with AI enhancement</p>
+        </div>
+
+        {/* Action Cards */}
+        <div className="action-cards">
+          {/* Camera Card */}
+          <div className="action-card camera-card">
+            <div className="card-icon">
+              📷
+            </div>
+            <div className="card-content">
+              <h3 className="card-title">Take Photo</h3>
+              <p className="card-description">Launch camera to capture a fresh shot</p>
+            </div>
+            <button
+              className="card-button camera-btn"
+              onClick={onCameraLaunch}
+            >
+              Open Camera
+            </button>
           </div>
 
-          {/* Upload Option */}
-          <div className="option-item">
+          {/* Upload Card */}
+          <div className="action-card upload-card">
             <div
-              className={`upload-area ${isDragOver ? 'drag-over' : ''}`}
+              className={`card-drop-zone ${isDragOver ? 'drag-over' : ''}`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -138,22 +145,26 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
               />
               
               {isProcessingUpload ? (
-                <div className="loading-container">
+                <div className="loading-state">
                   <div className="loading-spinner"></div>
-                  <p className="loading-text">Processing image...</p>
+                  <p>Processing...</p>
                 </div>
               ) : (
-                <>
-                  <div className="upload-icon">📁</div>
-                  <p className="upload-text">
-                    {isDragOver ? '🎯 Drop your image here' : 'Click or drag to upload'}
-                  </p>
-                </>
+                <div className="upload-content">
+                  <div className="card-icon">
+                    📁
+                  </div>
+                  <div className="card-content">
+                    <h3 className="card-title">Select Photo</h3>
+                    <p className="card-description">
+                      {isDragOver ? '🎯 Drop your image here' : 'Click or drag to upload from device'}
+                    </p>
+                  </div>
+                  <div className="card-button upload-btn">
+                    Choose File
+                  </div>
+                </div>
               )}
-            </div>
-            
-            <div className="option-info">
-              <h3>Select Photo</h3>
             </div>
           </div>
         </div>
@@ -166,303 +177,279 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="bottom-nav">
-        <button
-          className="history-btn"
-          onClick={onHistoryClick}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-            e.currentTarget.style.transform = 'translateY(-2px)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-            e.currentTarget.style.transform = 'translateY(0)';
-          }}
-        >
-          📸 History
-        </button>
-      </div>
-
       <style>{`
         .home-screen {
           min-height: 100vh;
           background-color: var(--color-tasty-black);
           color: white;
-          position: relative;
           display: flex;
           flex-direction: column;
-          padding: 40px;
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+          padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right);
         }
         
-        .bottom-nav {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          padding: 24px 40px;
-          background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
+        /* App Header */
+        .app-header {
+          background: rgba(0, 0, 0, 0.95);
           backdrop-filter: blur(20px);
-          display: flex;
-          justify-content: center;
-          z-index: 10;
-        }
-        
-        .history-btn {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: 30px;
-          color: white;
-          padding: 16px 32px;
-          cursor: pointer;
-          font-size: 16px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          transition: all 0.3s ease;
-          backdrop-filter: blur(20px);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        
-        .main-content {
-          flex: 1;
-          max-width: 1200px;
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 80px;
-          margin: 0 auto;
-          padding-bottom: 120px;
-        }
-        
-        .title-section {
-          text-align: center;
-        }
-        
-        .logo-container {
-          margin-bottom: 32px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-        
-        .app-logo {
-          display: block;
-          filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4));
-          transition: all 0.3s ease;
-          animation: float 6s ease-in-out infinite;
-        }
-        
-        .app-logo:hover {
-          filter: drop-shadow(0 12px 32px rgba(255, 107, 53, 0.3));
-          transform: translateY(-4px) scale(1.05);
-        }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
-        }
-        
-        .main-title {
-          font-size: 72px;
-          font-weight: bold;
-          background: linear-gradient(135deg, var(--color-tasty-orange) 0%, var(--color-tasty-red) 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          margin-bottom: 16px;
-          letter-spacing: -0.02em;
-        }
-        
-        .subtitle {
-          font-size: 24px;
-          color: rgba(255, 255, 255, 0.7);
-          font-weight: 400;
-          letter-spacing: 0.01em;
-          margin: 0;
-        }
-        
-        .options-container {
-          display: grid;
-          grid-template-columns: 1fr auto 1fr;
-          gap: 60px;
-          align-items: center;
-          width: 100%;
-          max-width: 900px;
-        }
-        
-        .option-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 24px;
-        }
-        
-        .camera-btn {
-          width: 160px;
-          height: 160px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, var(--color-tasty-orange) 0%, var(--color-tasty-red) 100%);
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 64px;
-          color: white;
-          transition: all 0.3s ease;
-          box-shadow: 0 8px 32px rgba(255, 107, 53, 0.3);
-        }
-        
-        .upload-area {
-          width: 280px;
-          height: 160px;
-          border: 2px dashed rgba(255, 255, 255, 0.3);
-          border-radius: 20px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-          backdrop-filter: blur(12px);
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .upload-area::before {
-          content: '';
-          position: absolute;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 16px 24px;
+          position: sticky;
           top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, transparent 0%, rgba(255, 107, 53, 0.1) 50%, transparent 100%);
-          opacity: 0;
-          transition: opacity 0.3s ease;
+          z-index: 100;
         }
         
-        .upload-area:hover::before {
-          opacity: 1;
-        }
-        
-        .upload-area:hover {
-          border-color: rgba(255, 107, 53, 0.6);
-          transform: translateY(-2px);
-          box-shadow: 0 12px 32px rgba(255, 107, 53, 0.2);
-        }
-        
-        .upload-area.drag-over {
-          border-color: var(--color-tasty-orange);
-          background: linear-gradient(135deg, rgba(255, 107, 53, 0.15) 0%, rgba(255, 107, 53, 0.05) 100%);
-          transform: scale(1.02);
-          box-shadow: 0 16px 40px rgba(255, 107, 53, 0.3);
-        }
-        
-        .upload-area.drag-over::before {
-          opacity: 1;
-        }
-        
-        .upload-icon {
-          font-size: 48px;
-          margin-bottom: 12px;
-          opacity: 0.7;
-        }
-        
-        .upload-area.drag-over .upload-icon {
-          opacity: 1;
-        }
-        
-        .upload-text {
-          font-size: 16px;
-          font-weight: 500;
-          color: rgba(255, 255, 255, 0.8);
-          text-align: center;
-          margin: 0;
-          line-height: 1.3;
-        }
-        
-        .upload-area.drag-over .upload-text {
-          color: var(--color-tasty-orange);
-        }
-        
-        .loading-container {
+        .header-content {
+          max-width: 1200px;
+          margin: 0 auto;
           display: flex;
-          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;
+        }
+        
+        .app-brand {
+          display: flex;
           align-items: center;
           gap: 12px;
         }
         
-        .loading-spinner {
-          width: 40px;
-          height: 40px;
-          border: 3px solid rgba(255, 255, 255, 0.2);
-          border-top: 3px solid var(--color-tasty-orange);
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
+        .header-logo {
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
         }
         
-        .loading-text {
+        .brand-text {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        
+        .app-name {
+          font-size: 20px;
+          font-weight: 700;
+          margin: 0;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          background: var(--gradient-tasty);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        
+        .app-tagline {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.7);
+          margin: 0;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          font-weight: 500;
+        }
+        
+        .history-nav-btn {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 12px;
+          color: white;
+          padding: 10px 16px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          transition: all 0.2s ease;
+          backdrop-filter: blur(10px);
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        
+        .history-nav-btn:hover {
+          background: rgba(255, 255, 255, 0.15);
+          transform: translateY(-1px);
+        }
+        
+        /* Main Content */
+        .main-content {
+          flex: 1;
+          max-width: 800px;
+          width: 100%;
+          margin: 0 auto;
+          padding: 40px 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 40px;
+        }
+        
+        /* Welcome Section */
+        .welcome-section {
+          text-align: center;
+          padding: 20px 0;
+        }
+        
+        .welcome-title {
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0 0 12px 0;
+          text-transform: uppercase;
+          letter-spacing: 0.02em;
+          line-height: 1.2;
+        }
+        
+        .welcome-subtitle {
+          font-size: 16px;
+          color: rgba(255, 255, 255, 0.8);
+          margin: 0;
+          line-height: 1.5;
+        }
+        
+        /* Action Cards */
+        .action-cards {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          margin: 20px 0;
+        }
+        
+        .action-card {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          padding: 24px;
+          backdrop-filter: blur(10px);
+          transition: all 0.3s ease;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          min-height: 200px;
+        }
+        
+        .action-card:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+        }
+        
+        .card-icon {
+          font-size: 32px;
+          width: 56px;
+          height: 56px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .card-content {
+          flex: 1;
+        }
+        
+        .card-title {
+          font-size: 18px;
+          font-weight: 700;
+          margin: 0 0 8px 0;
+          text-transform: uppercase;
+          letter-spacing: 0.02em;
+        }
+        
+        .card-description {
           font-size: 14px;
           color: rgba(255, 255, 255, 0.8);
-          font-weight: 500;
-          margin: 0;
-        }
-        
-        .option-info {
-          text-align: center;
-        }
-        
-        .option-info h3 {
-          font-size: 24px;
-          font-weight: 600;
-          margin: 0 0 12px 0;
-          color: white;
-        }
-        
-        .option-info p {
-          font-size: 16px;
-          color: rgba(255, 255, 255, 0.6);
           margin: 0;
           line-height: 1.4;
         }
         
-        .divider {
+        .card-button {
+          background: var(--gradient-tasty);
+          border: none;
+          border-radius: 12px;
+          color: var(--color-tasty-black);
+          padding: 12px 20px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          transition: all 0.2s ease;
+          margin-top: auto;
+        }
+        
+        .card-button:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+        }
+        
+        /* Upload Card Specific */
+        .card-drop-zone {
+          cursor: pointer;
+          border-radius: 12px;
+          transition: all 0.3s ease;
+          min-height: 100%;
           display: flex;
+          flex-direction: column;
+        }
+        
+        .card-drop-zone.drag-over {
+          background: rgba(255, 215, 0, 0.1);
+          border-color: var(--color-tasty-yellow);
+        }
+        
+        .upload-content {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          flex: 1;
+        }
+        
+        .upload-btn {
+          background: rgba(255, 255, 255, 0.1);
+          border: 2px dashed rgba(255, 255, 255, 0.3);
+          color: white;
+          text-align: center;
+          padding: 12px 20px;
+          border-radius: 12px;
+          margin-top: auto;
+          transition: all 0.2s ease;
+        }
+        
+        .card-drop-zone:hover .upload-btn {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Loading States */
+        .loading-state {
+          display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 20px;
-          flex-direction: column;
-          height: 100%;
+          gap: 12px;
+          flex: 1;
+          min-height: 120px;
         }
         
-        .divider-line {
-          width: 1px;
-          height: 60px;
-          background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+        .loading-spinner {
+          width: 24px;
+          height: 24px;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          border-top: 2px solid var(--color-tasty-yellow);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
         }
         
-        .divider-text {
-          font-size: 16px;
-          font-weight: 600;
-          color: rgba(255, 255, 255, 0.6);
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          padding: 8px 16px;
-          background-color: rgba(255, 255, 255, 0.05);
-          border-radius: 20px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
         
+        /* Made By Credit */
         .made-by {
+          margin-top: auto;
           text-align: center;
+          padding: 20px 0;
         }
         
         .made-by a {
@@ -470,162 +457,100 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           text-decoration: none;
           font-size: 14px;
           font-weight: 500;
-          transition: all 0.3s ease;
-          padding: 8px 16px;
-          border-radius: 20px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          display: inline-block;
+          transition: all 0.2s ease;
         }
         
         .made-by a:hover {
-          color: var(--color-tasty-orange);
-          background: rgba(255, 107, 53, 0.1);
-          border-color: rgba(255, 107, 53, 0.3);
-          transform: translateY(-2px);
+          color: var(--color-tasty-yellow);
+          text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
         }
         
-        /* Tablet styles */
-        @media (max-width: 1024px) {
-          .main-content {
-            gap: 60px;
-          }
-          
-          .logo-container {
-            margin-bottom: 28px;
-          }
-          
-          .app-logo {
-            width: 100px !important;
-            height: 100px !important;
-          }
-          
-          .main-title {
-            font-size: 56px;
-          }
-          
-          .subtitle {
-            font-size: 20px;
-          }
-          
-          .options-container {
-            gap: 40px;
-            max-width: 700px;
-          }
-          
-          .camera-btn {
-            width: 140px;
-            height: 140px;
-            font-size: 56px;
-          }
-          
-          .upload-area {
-            width: 240px;
-            height: 140px;
-          }
-          
-        }
-        
-        /* Mobile styles */
-        @media (max-width: 768px) {
+        /* Mobile Responsive */
+        @media (max-width: 767px) {
           .home-screen {
-            padding: 16px;
-            min-height: 100vh;
-            height: 100vh;
-            overflow: hidden;
+            padding-left: max(16px, env(safe-area-inset-left));
+            padding-right: max(16px, env(safe-area-inset-right));
           }
           
-          .bottom-nav {
+          .app-header {
             padding: 12px 16px;
           }
           
-          .history-btn {
-            padding: 10px 20px;
-            font-size: 14px;
+          .app-name {
+            font-size: 18px;
+          }
+          
+          .app-tagline {
+            font-size: 10px;
+          }
+          
+          .history-nav-btn {
+            font-size: 12px;
+            padding: 8px 12px;
           }
           
           .main-content {
-            gap: 24px;
-            padding-bottom: 80px;
-            justify-content: flex-start;
-            max-height: calc(100vh - 80px);
-            overflow-y: auto;
+            padding: 24px 16px;
+            gap: 32px;
           }
           
-          .title-section {
-            margin-top: 20px;
+          .welcome-title {
+            font-size: 24px;
           }
           
-          .logo-container {
-            margin-bottom: 16px;
-          }
-          
-          .app-logo {
-            width: 60px !important;
-            height: 60px !important;
-          }
-          
-          .main-title {
-            font-size: 28px;
-            margin-bottom: 8px;
-          }
-          
-          .subtitle {
+          .welcome-subtitle {
             font-size: 14px;
           }
           
-          .options-container {
+          .action-cards {
             grid-template-columns: 1fr;
-            gap: 20px;
-            max-width: 100%;
+            gap: 16px;
+            margin: 16px 0;
           }
           
-          .divider {
-            flex-direction: row;
-            margin: 8px 0;
+          .action-card {
+            padding: 20px;
+            min-height: 160px;
           }
           
-          .divider-line {
-            width: 60px;
-            height: 1px;
+          .card-icon {
+            font-size: 28px;
+            width: 48px;
+            height: 48px;
           }
           
-          .camera-btn {
-            width: 100px;
-            height: 100px;
-            font-size: 40px;
+          .card-title {
+            font-size: 16px;
           }
           
-          .upload-area {
-            width: 100%;
-            max-width: 100%;
-            height: 120px;
-          }
-          
-          .upload-icon {
-            font-size: 32px;
-            margin-bottom: 8px;
-          }
-          
-          .upload-text {
-            font-size: 14px;
-          }
-          
-          .option-info h3 {
-            font-size: 18px;
-            margin-bottom: 4px;
-          }
-          
-          .option-info p {
+          .card-description {
             font-size: 13px;
           }
           
+          .card-button {
+            font-size: 12px;
+            padding: 10px 16px;
+          }
         }
         
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        /* Tablet */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .main-content {
+            max-width: 700px;
+            padding: 32px 24px;
+          }
+          
+          .welcome-title {
+            font-size: 28px;
+          }
+          
+          .action-cards {
+            gap: 16px;
+          }
+          
+          .action-card {
+            min-height: 180px;
+          }
         }
       `}</style>
     </div>

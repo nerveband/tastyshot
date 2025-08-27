@@ -374,10 +374,10 @@ The image has been processed successfully - the download feature may not work in
           className="back-button"
         >
           <ArrowLeft size={20} />
-          <span className="font-bold uppercase tracking-wider">BACK</span>
+          <span className="text-xs uppercase tracking-wider">Back</span>
         </button>
         
-        <h1 className="font-bold text-lg uppercase tracking-widest">EDIT PHOTO</h1>
+        <h1 className="editor-title">EDIT PHOTO</h1>
         
         <div></div>
       </div>
@@ -395,7 +395,7 @@ The image has been processed successfully - the download feature may not work in
                   <ReactCompareSliderImage
                     src={originalImage}
                     alt="Original"
-                    style={{ objectFit: 'contain', width: '100%', height: '100%', maxHeight: '70vh' }}
+                    style={{ objectFit: 'contain', width: '100%', height: '100%', maxHeight: '70vh', display: 'block' }}
                     onLoad={() => console.log('Original image loaded for comparison:', originalImage.substring(0, 50))}
                     onError={() => console.error('Original image failed to load for comparison')}
                   />
@@ -404,7 +404,7 @@ The image has been processed successfully - the download feature may not work in
                   <ReactCompareSliderImage
                     src={editedImage}
                     alt="Edited"
-                    style={{ objectFit: 'contain', width: '100%', height: '100%', maxHeight: '70vh' }}
+                    style={{ objectFit: 'contain', width: '100%', height: '100%', maxHeight: '70vh', display: 'block' }}
                     onLoad={() => console.log('Edited image loaded for comparison:', editedImage.substring(0, 50))}
                     onError={() => console.error('Edited image failed to load for comparison')}
                   />
@@ -418,7 +418,8 @@ The image has been processed successfully - the download feature may not work in
                   overflow: 'hidden',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  position: 'relative'
                 }}
                 changePositionOnHover={false}
                 onlyHandleDraggable={true}
@@ -433,7 +434,8 @@ The image has been processed successfully - the download feature may not work in
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'ew-resize',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                    zIndex: 10
                   }}>
                     <div style={{
                       width: '4px',
@@ -443,7 +445,7 @@ The image has been processed successfully - the download feature may not work in
                     }} />
                   </div>
                 }
-                boundsPadding={0}
+                boundsPadding={5}
               />
               
               {/* Labels */}
@@ -465,6 +467,36 @@ The image has been processed successfully - the download feature may not work in
             </div>
           )}
         </div>
+
+          {/* Image Actions - Beneath Image */}
+          {editedImage && (
+            <div className="image-actions">
+              <button
+                onClick={handleSave}
+                className="save-button"
+              >
+                <Download size={16} className="inline mr-2" />
+                Save Photo
+              </button>
+              
+              <div className="upscale-buttons">
+                <button
+                  onClick={() => handleUpscale('x2')}
+                  disabled={currentService.isProcessing}
+                  className="upscale-button"
+                >
+                  Upscale 2x
+                </button>
+                <button
+                  onClick={() => handleUpscale('x4')}
+                  disabled={currentService.isProcessing}
+                  className="upscale-button"
+                >
+                  Upscale 4x
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Controls Sidebar */}
@@ -500,87 +532,19 @@ The image has been processed successfully - the download feature may not work in
             </button>
           </div>
 
-          {/* AI Model Selection */}
-          <div className="sidebar-section">
-            <div className="section-title">AI Model</div>
-            <div className="mb-2">
-              <select
-                value={selectedModel?.id || ''}
-                onChange={(e) => {
-                  const model = allAvailableModels.find(m => m.id === e.target.value);
-                  if (model) {
-                    setSelectedModel(model);
-                    setModelType(model.type);
-                  }
-                }}
-                className="w-full p-2 bg-gray-900 border border-gray-700 rounded text-white text-sm"
-              >
-                {allAvailableModels.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name} - {model.provider}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {selectedModel && (
-              <div className="p-2 bg-gray-900/60 rounded border border-gray-700 text-xs">
-                <div className="font-medium text-white mb-1">{selectedModel.name}</div>
-                <div className="text-gray-400">{selectedModel.description}</div>
-              </div>
-            )}
-          </div>
-
-          {/* Editing Presets - Organized by Category */}
-          <div className="sidebar-section">
-            <div className="section-title">Quick Edits</div>
-            
-            {/* Group presets by category */}
-            {['FOOD STYLES', 'LIGHTING & MOOD'].map((category) => (
-              <div key={category} className="mb-3">
-                <div className="text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
-                  {category === 'FOOD STYLES' ? '🍽️' : '💡'} {category}
-                </div>
-                <div className="grid grid-cols-1 gap-1.5">
-                  {currentService.editingPresets
-                    .filter((preset) => preset.category === category)
-                    .map((preset) => (
-                      <button
-                        key={preset.id}
-                        onClick={() => {
-                          // Set the custom prompt with the preset's prompt for editing
-                          setCustomPrompt(preset.prompt);
-                          setShowCustomPrompt(true);
-                        }}
-                        disabled={currentService.isProcessing || !selectedModel}
-                        className="p-2 bg-gray-900/60 hover:bg-gray-800/80 border border-gray-700 rounded text-left transition-colors disabled:opacity-50 text-sm"
-                      >
-                        <div className="flex items-center gap-2">
-                          <IconMap icon={preset.icon} size={14} />
-                          <div>
-                            <div className="font-medium text-white text-xs uppercase tracking-wider">{preset.name}</div>
-                            <div className="text-gray-400 text-xs leading-tight mt-0.5">{preset.description}</div>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Prompt Editor */}
-          <div className="sidebar-section">
+          {/* Prompt Editor - Moved to Top */}
+          <div className="sidebar-section prompt-editor-section">
             <div className="section-title">Prompt Editor</div>
             <div className="space-y-2">
               {showCustomPrompt ? (
                 <div className="space-y-2">
-                  <div className="text-xs text-gray-400 mb-1">Edit the prompt below or select a preset above:</div>
+                  <div className="text-xs text-gray-400 mb-1">Edit the prompt below or select a preset:</div>
                   <textarea
                     value={customPrompt}
                     onChange={(e) => setCustomPrompt(e.target.value)}
-                    placeholder="Describe your edit or select a preset above..."
+                    placeholder="Describe your edit or select a preset below..."
                     className="w-full p-3 bg-gray-900/80 border border-gray-600 rounded text-white text-sm resize-none focus:border-yellow-500 focus:outline-none"
-                    rows={4}
+                    rows={3}
                     style={{ fontSize: '16px' }} // Prevent iOS zoom
                     onFocus={(e) => {
                       // Scroll textarea into view on mobile when keyboard appears
@@ -624,45 +588,94 @@ The image has been processed successfully - the download feature may not work in
             </div>
           </div>
 
-          {/* Actions */}
-          {editedImage && (
-            <div className="sidebar-section">
-              <div className="section-title">Actions</div>
-              
-              {/* Storage Warning */}
-              <div className="bg-amber-900/30 border border-amber-600/50 rounded p-2 mb-3">
-                <p className="text-amber-200 text-xs font-medium mb-1">📱 Storage Limit</p>
-                <p className="text-amber-300/80 text-xs leading-tight">
-                  Only the last 20 photos are kept in history. <strong>Save your favorites!</strong>
-                </p>
+          {/* AI Model Selection */}
+          <div className="sidebar-section">
+            <div className="section-title">AI Model</div>
+            <div className="mb-2">
+              <select
+                value={selectedModel?.id || ''}
+                onChange={(e) => {
+                  const model = allAvailableModels.find(m => m.id === e.target.value);
+                  if (model) {
+                    setSelectedModel(model);
+                    setModelType(model.type);
+                  }
+                }}
+                className="w-full p-2 bg-gray-900 border border-gray-700 rounded text-white text-sm"
+              >
+                {allAvailableModels.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.name} - {model.provider}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {selectedModel && (
+              <div className="p-2 bg-gray-900/60 rounded border border-gray-700 text-xs">
+                <div className="font-medium text-white mb-1">{selectedModel.name}</div>
+                <div className="text-gray-400">{selectedModel.description}</div>
               </div>
-              
-              <div className="space-y-2">
-                <button
-                  onClick={handleSave}
-                  className="w-full p-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-medium text-sm rounded hover:shadow-md transition-all"
-                >
-                  <Download size={16} className="inline mr-2" />
-                  Save Photo
-                </button>
-                
+            )}
+          </div>
+
+          {/* Editing Presets - Organized by Category */}
+          <div className="sidebar-section">
+            <div className="section-title">Quick Edits</div>
+            
+            {/* Group presets by category */}
+            {['FOOD STYLES', 'LIGHTING & MOOD'].map((category) => (
+              <div key={category} className="mb-3">
+                <div className="text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
+                  {category === 'FOOD STYLES' ? '🍽️' : '💡'} {category}
+                </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => handleUpscale('x2')}
-                    disabled={currentService.isProcessing}
-                    className="p-2 bg-gray-900/60 border border-gray-700 text-white text-xs rounded hover:bg-gray-800/80 transition-colors disabled:opacity-50"
-                  >
-                    Upscale 2x
-                  </button>
-                  <button
-                    onClick={() => handleUpscale('x4')}
-                    disabled={currentService.isProcessing}
-                    className="p-2 bg-gray-900/60 border border-gray-700 text-white text-xs rounded hover:bg-gray-800/80 transition-colors disabled:opacity-50"
-                  >
-                    Upscale 4x
-                  </button>
+                  {currentService.editingPresets
+                    .filter((preset) => preset.category === category)
+                    .map((preset) => (
+                      <button
+                        key={preset.id}
+                        onClick={() => {
+                          // Set the custom prompt with the preset's prompt for editing
+                          setCustomPrompt(preset.prompt);
+                          setShowCustomPrompt(true);
+                          // Scroll to prompt editor
+                          setTimeout(() => {
+                            const promptEditor = document.querySelector('.prompt-editor-section');
+                            if (promptEditor) {
+                              promptEditor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }
+                          }, 100);
+                        }}
+                        disabled={currentService.isProcessing || !selectedModel}
+                        className="preset-tile p-3 bg-gray-900/60 hover:bg-gray-800/80 border border-gray-700 rounded text-center transition-all disabled:opacity-50 text-sm hover:border-yellow-500 hover:shadow-lg"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <IconMap icon={preset.icon} size={16} />
+                          <div>
+                            <div className="font-medium text-white text-xs uppercase tracking-wider leading-tight">{preset.name}</div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
                 </div>
               </div>
+            ))}
+          </div>
+
+
+          {/* Timeline Button */}
+          {editingHistory.length > 1 && (
+            <div className="sidebar-section">
+              <button
+                onClick={() => {
+                  if (timelineRef.current) {
+                    timelineRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }
+                }}
+                className="timeline-button"
+              >
+                📸 View Timeline ({editingHistory.length})
+              </button>
             </div>
           )}
 
@@ -725,9 +738,9 @@ The image has been processed successfully - the download feature may not work in
           )}
         </div>
 
-        {/* Processing Overlay */}
+        {/* Processing Overlay - Only covers image area, allows sidebar scrolling */}
         {currentService.isProcessing && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-40 processing-overlay">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-white font-bold uppercase tracking-wider mb-2">
@@ -827,6 +840,106 @@ The image has been processed successfully - the download feature may not work in
         .back-button:hover {
           color: var(--color-tasty-yellow);
         }
+
+        .editor-title {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          font-size: 1.125rem;
+          font-weight: bold;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+
+        .image-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-top: 16px;
+          align-items: center;
+        }
+
+        .save-button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 24px;
+          background: linear-gradient(to right, rgb(245, 158, 11), rgb(249, 115, 22));
+          color: var(--color-tasty-black);
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .save-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+        }
+
+        .upscale-buttons {
+          display: flex;
+          gap: 8px;
+        }
+
+        .upscale-button {
+          padding: 8px 16px;
+          background: rgba(75, 85, 99, 0.6);
+          color: white;
+          border: 1px solid rgba(75, 85, 99, 0.7);
+          border-radius: 6px;
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .upscale-button:hover:not(:disabled) {
+          background: rgba(75, 85, 99, 0.8);
+          transform: translateY(-1px);
+        }
+
+        .upscale-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .timeline-button {
+          width: 100%;
+          padding: 12px;
+          background: linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+          border: 1px solid rgba(59, 130, 246, 0.3);
+          border-radius: 8px;
+          color: white;
+          font-size: 14px;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .timeline-button:hover {
+          background: linear-gradient(to right, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+          border-color: rgba(59, 130, 246, 0.5);
+          transform: translateY(-1px);
+        }
+
+        .preset-tile {
+          min-height: 70px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .preset-tile:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+        }
         
         .editor-content {
           grid-area: main;
@@ -835,6 +948,16 @@ The image has been processed successfully - the download feature may not work in
           height: 100%;
           min-height: 0;
           overflow: hidden;
+          position: relative;
+        }
+        
+        .processing-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 320px; /* Don't cover the sidebar */
+          bottom: 0;
+          z-index: 40;
         }
         
         .image-section {
@@ -1091,11 +1214,28 @@ The image has been processed successfully - the download feature may not work in
           }
         }
         
+        /* Safari Safe Area Support */
+        .photo-editor {
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+          padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right);
+        }
+        
+        .editor-header {
+          padding-left: max(24px, env(safe-area-inset-left));
+          padding-right: max(24px, env(safe-area-inset-right));
+          padding-top: max(16px, env(safe-area-inset-top) + 16px);
+        }
+
         /* Mobile responsive updates */
         @media (max-width: 767px) {
           .photo-editor {
             height: 100vh;
             grid-template-rows: auto 1fr;
+            /* Better height calculation accounting for safe areas */
+            height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+            min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
           }
           
           .editor-content {
@@ -1107,59 +1247,73 @@ The image has been processed successfully - the download feature may not work in
           }
           
           .image-section {
-            flex: 1;
-            padding: 12px;
+            /* Reduced from flex: 1 to give more space to controls */
+            flex: 0.6;
+            padding: 8px;
             display: flex;
             flex-direction: column;
             min-height: 0;
+            max-height: 40vh; /* Constrain image area on mobile */
           }
           
           .image-container {
             flex: 1;
             max-width: none;
             max-height: none;
-            min-height: 200px;
+            min-height: 150px; /* Reduced from 200px */
           }
           
           .single-image {
-            max-height: calc(100vh - 350px);
+            max-height: calc(40vh - 60px); /* Reduced photo space */
             width: 100%;
             height: auto;
             object-fit: contain;
           }
           
           .comparison-wrapper {
-            max-height: calc(100vh - 350px);
-            min-height: 200px;
+            max-height: calc(40vh - 60px); /* Reduced photo space */
+            min-height: 150px; /* Reduced from 200px */
             width: 100%;
             height: auto;
           }
           
           .toggle-section {
-            margin: 8px 0;
+            margin: 6px 0;
             flex-shrink: 0;
           }
           
           .controls-sidebar {
+            /* Increased space for controls */
+            flex: 1;
             flex-shrink: 0;
-            padding: 16px;
-            max-height: 250px;
-            min-height: 250px;
+            padding: 12px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom) + 12px);
+            max-height: none; /* Remove height constraints */
+            min-height: none; /* Remove height constraints */
             overflow-y: auto;
             background-color: rgba(0, 0, 0, 0.95);
             border-left: none;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 12px; /* Reduced gap between sections */
+          }
+          
+          /* Prioritize prompt editor section on mobile */
+          .prompt-editor-section {
+            order: -1; /* Ensure it stays at top */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 12px;
+            margin-bottom: 12px;
           }
           
           /* Make custom prompt area more mobile-friendly */
           .custom-prompt-section {
-            padding: 12px 0;
+            padding: 8px 0;
           }
           
           .custom-prompt-section textarea {
             font-size: 16px !important; /* Prevents zoom on iOS */
-            padding: 12px;
-            min-height: 80px;
+            padding: 10px;
+            min-height: 60px; /* Reduced height */
             resize: vertical;
           }
           
@@ -1172,42 +1326,105 @@ The image has been processed successfully - the download feature may not work in
           
           .section-title {
             font-size: 10px;
+            margin-bottom: 6px; /* Increased for touch targets */
+          }
+          
+          /* Compact sidebar sections on mobile */
+          .sidebar-section {
+            gap: 6px;
+            margin-bottom: 8px; /* Reduced spacing */
           }
           
           /* Adjust timeline for mobile */
           .timeline-container {
-            max-height: 150px;
+            max-height: 120px; /* Reduced further */
           }
           
           .timeline-item {
-            padding: 6px;
+            padding: 4px;
           }
           
           .timeline-image {
-            height: 40px;
+            height: 35px;
           }
           
           .timeline-prompt {
-            font-size: 10px;
+            font-size: 9px;
           }
           
           .timeline-time {
-            font-size: 9px;
+            font-size: 8px;
           }
           
           /* Keyboard visibility adjustments */
           .photo-editor.keyboard-visible .image-section {
-            max-height: 30vh;
+            max-height: 25vh; /* Even smaller when keyboard is visible */
           }
           
           .photo-editor.keyboard-visible .controls-sidebar {
-            max-height: 200px;
             padding: 8px;
+            padding-bottom: max(8px, env(safe-area-inset-bottom) + 8px);
           }
           
           .photo-editor.keyboard-visible .single-image,
           .photo-editor.keyboard-visible .comparison-wrapper {
-            max-height: 25vh;
+            max-height: calc(25vh - 40px);
+          }
+          
+          /* Better spacing for preset buttons on mobile */
+          .sidebar-section .grid {
+            gap: 8px;
+          }
+          
+          .sidebar-section button {
+            padding: 8px;
+            min-height: 44px; /* Touch-friendly */
+          }
+
+          .preset-tile {
+            min-height: 60px;
+            padding: 8px !important;
+          }
+
+          .image-actions {
+            margin-top: 12px;
+            gap: 8px;
+          }
+
+          .save-button {
+            padding: 10px 20px;
+            font-size: 13px;
+          }
+
+          .upscale-button {
+            padding: 6px 12px;
+            font-size: 11px;
+          }
+
+          .timeline-button {
+            padding: 10px;
+            font-size: 13px;
+          }
+
+          .editor-title {
+            font-size: 1rem;
+          }
+          
+          /* Model selection adjustments */
+          .sidebar-section select {
+            min-height: 40px; /* Touch-friendly */
+            font-size: 14px;
+          }
+          
+          /* Processing overlay on mobile - only covers image section */
+          .processing-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0; /* Full width on mobile since sidebar is below */
+            bottom: auto;
+            height: 40vh; /* Only cover the image area */
+            z-index: 40;
           }
         }
         

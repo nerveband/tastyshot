@@ -45,7 +45,7 @@ export const GEMINI_PROMPTS = {
   // FOOD STYLES
   OVERHEAD_FLAT_LAY: 'Using the provided image, transform into overhead flat lay style with complete table setup, props, and styled composition',
   TEXTURE_CLOSE_UP: 'Using the provided image, create macro close-up highlighting food textures, moisture, and appetizing details',
-  DELIVERY_READY: 'Using the provided image, place food in eco-friendly container on white background, flat lay with utensils and napkins, professional delivery app style',
+  DELIVERY_READY: 'Using the provided image, place food in an open eco-friendly container on white background, flat lay without utensils, professional delivery app style',
   FINE_DINING: 'Using the provided image, style as elegant fine dining presentation with sophisticated plating on premium dinnerware',
   // LIGHTING & MOOD
   DRAMATIC_RESTAURANT: 'Using the provided image, apply dramatic restaurant lighting with warm ambiance and strategic shadows',
