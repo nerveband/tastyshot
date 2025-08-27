@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { ReactCompareSlider, ReactCompareSliderImage } from 'react-compare-slider';
 import { useGemini } from '../../hooks/useGemini';
+import { useReplicate } from '../../hooks/useReplicate';
 import { IconMap } from '../UI/IconMap';
 import { ArrowLeft, Bot, Download, Share } from 'lucide-react';
 import type { GeminiModel } from '../../services/gemini';
+import type { AIModel } from '../../types';
 
 interface PhotoEditorProps {
   originalImage: string;
@@ -20,31 +22,51 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   const [customPrompt, setCustomPrompt] = useState('');
   const [showCustomPrompt, setShowCustomPrompt] = useState(false);
   const [comparisonMode, setComparisonMode] = useState(true); // Enable by default
-  const [selectedModel, setSelectedModel] = useState<GeminiModel | null>(null);
+  const [selectedModel, setSelectedModel] = useState<GeminiModel | AIModel | null>(null);
+  const [modelType, setModelType] = useState<'gemini' | 'replicate'>('gemini');
 
-  const {
-    isProcessing,
-    progress,
-    error,
-    processImage,
-    clearError,
-    availableModels,
-    editingPresets,
-  } = useGemini();
+  const gemini = useGemini();
+  const replicate = useReplicate();
 
-  // Set default model if none selected
+  // Get current service based on model type
+  const currentService = modelType === 'gemini' ? gemini : replicate;
+  
+  // Combined available models (Gemini first, then Replicate)
+  const allAvailableModels = [
+    ...gemini.availableModels.map(model => ({ ...model, type: 'gemini' as const })),
+    ...replicate.availableModels.map(model => ({ ...model, type: 'replicate' as const }))
+  ];
+
+  // Set default model if none selected (Gemini first)
   React.useEffect(() => {
-    if (!selectedModel && availableModels.length > 0) {
-      setSelectedModel(availableModels[0]);
+    if (!selectedModel && allAvailableModels.length > 0) {
+      const defaultModel = allAvailableModels[0];
+      setSelectedModel(defaultModel);
+      setModelType(defaultModel.type);
     }
-  }, [availableModels, selectedModel]);
+  }, [allAvailableModels.length, selectedModel]);
 
   // Handle preset selection
   const handlePresetEdit = async (preset: any) => {
     if (!selectedModel) return;
     
-    clearError();
-    const result = await processImage(selectedModel, originalImage, preset.prompt);
+    currentService.clearError();
+    
+    let result: string | null = null;
+    
+    if (modelType === 'gemini') {
+      result = await gemini.processImage(selectedModel as GeminiModel, originalImage, preset.prompt);
+    } else {
+      // For Replicate models, use the settings format
+      const settings = {
+        prompt: preset.prompt,
+        guidance_scale: (selectedModel as AIModel).defaultSettings?.guidance_scale || 3.5,
+        num_inference_steps: (selectedModel as AIModel).defaultSettings?.num_inference_steps || 25,
+        width: (selectedModel as AIModel).defaultSettings?.width || 1024,
+        height: (selectedModel as AIModel).defaultSettings?.height || 1024,
+      };
+      result = await replicate.runModel(selectedModel as AIModel, originalImage, settings);
+    }
 
     console.log('PhotoEditor - editImage result:', result);
     console.log('PhotoEditor - result type:', typeof result);
@@ -271,16 +293,16 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
         )}
 
         {/* Processing Overlay */}
-        {isProcessing && (
+        {currentService.isProcessing && (
           <div className="absolute inset-0 bg-tasty-black/80 flex items-center justify-center">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-tasty-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-tasty-white font-bold uppercase tracking-wider mb-2">
                 PROCESSING...
               </p>
-              {progress.length > 0 && (
+              {currentService.progress.length > 0 && (
                 <p className="text-tasty-white/70 text-sm">
-                  {progress[progress.length - 1]}
+                  {currentService.progress[currentService.progress.length - 1]}
                 </p>
               )}
             </div>
@@ -289,11 +311,11 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
       </div>
 
       {/* Error Display */}
-      {error && (
+      {currentService.error && (
         <div className="p-4 mx-4 bg-red-900/50 border border-red-700 rounded-lg mb-4">
-          <p className="text-red-200 text-sm">{error}</p>
+          <p className="text-red-200 text-sm">{currentService.error}</p>
           <button
-            onClick={clearError}
+            onClick={currentService.clearError}
             className="mt-2 text-xs text-red-300 hover:text-red-100"
           >
             DISMISS
@@ -308,9 +330,31 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
             AI MODEL
           </h3>
           <span className="text-xs font-bold uppercase tracking-wider text-tasty-yellow">
-            POWERED BY GOOGLE
+            {modelType === 'gemini' ? 'POWERED BY GOOGLE' : 'POWERED BY REPLICATE'}
           </span>
         </div>
+        
+        {/* Model Dropdown */}
+        <div className="mb-3">
+          <select
+            value={selectedModel?.id || ''}
+            onChange={(e) => {
+              const model = allAvailableModels.find(m => m.id === e.target.value);
+              if (model) {
+                setSelectedModel(model);
+                setModelType(model.type);
+              }
+            }}
+            className="w-full p-2 bg-gray-900 border border-gray-700 rounded text-tasty-white text-sm"
+          >
+            {allAvailableModels.map((model) => (
+              <option key={model.id} value={model.id}>
+                {model.name} - {model.provider}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {selectedModel && (
           <div className="p-3 bg-gray-900 rounded-lg border border-gray-700">
             <div className="flex items-center space-x-2 mb-1">
@@ -340,11 +384,11 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
       {/* Editing Presets */}
       <div className="p-4">
         <div className="grid grid-cols-2 gap-3 mb-4">
-          {editingPresets.map((preset) => (
+          {currentService.editingPresets.map((preset) => (
             <button
               key={preset.id}
               onClick={() => handlePresetEdit(preset)}
-              disabled={isProcessing || !selectedModel}
+              disabled={currentService.isProcessing || !selectedModel}
               className="p-4 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-lg text-left transition-colors disabled:opacity-50"
             >
               <div className="flex items-center space-x-3">
@@ -411,7 +455,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
               />
               <button
                 onClick={handleCustomEdit}
-                disabled={isProcessing || !customPrompt.trim() || !selectedModel}
+                disabled={currentService.isProcessing || !customPrompt.trim() || !selectedModel}
                 style={{
                   width: '100%',
                   padding: '14px 20px',
@@ -422,13 +466,13 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
                   letterSpacing: '0.05em',
                   borderRadius: '8px',
                   border: 'none',
-                  cursor: isProcessing || !customPrompt.trim() || !selectedModel ? 'not-allowed' : 'pointer',
-                  opacity: isProcessing || !customPrompt.trim() || !selectedModel ? 0.5 : 1,
+                  cursor: currentService.isProcessing || !customPrompt.trim() || !selectedModel ? 'not-allowed' : 'pointer',
+                  opacity: currentService.isProcessing || !customPrompt.trim() || !selectedModel ? 0.5 : 1,
                   transition: 'all 0.15s',
                   fontSize: '14px'
                 }}
                 onMouseEnter={(e) => {
-                  if (!isProcessing && customPrompt.trim() && selectedModel) {
+                  if (!currentService.isProcessing && customPrompt.trim() && selectedModel) {
                     e.currentTarget.style.transform = 'translateY(-1px)';
                     e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
                   }
@@ -438,7 +482,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
-                {isProcessing ? 'PROCESSING...' : 'APPLY CUSTOM EDIT'}
+                {currentService.isProcessing ? 'PROCESSING...' : 'APPLY CUSTOM EDIT'}
               </button>
             </div>
           )}
@@ -468,7 +512,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
             }}>
               <button
                 onClick={() => handleUpscale('x2')}
-                disabled={isProcessing}
+                disabled={currentService.isProcessing}
                 style={{
                   padding: '12px 16px',
                   backgroundColor: 'rgba(245, 245, 245, 0.1)',
@@ -479,12 +523,12 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   fontSize: '14px',
-                  cursor: isProcessing ? 'not-allowed' : 'pointer',
-                  opacity: isProcessing ? 0.5 : 1,
+                  cursor: currentService.isProcessing ? 'not-allowed' : 'pointer',
+                  opacity: currentService.isProcessing ? 0.5 : 1,
                   transition: 'all 0.15s'
                 }}
                 onMouseEnter={(e) => {
-                  if (!isProcessing) {
+                  if (!currentService.isProcessing) {
                     e.currentTarget.style.backgroundColor = 'rgba(245, 245, 245, 0.2)';
                   }
                 }}
@@ -496,7 +540,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
               </button>
               <button
                 onClick={() => handleUpscale('x4')}
-                disabled={isProcessing}
+                disabled={currentService.isProcessing}
                 style={{
                   padding: '12px 16px',
                   backgroundColor: 'rgba(245, 245, 245, 0.1)',
@@ -507,12 +551,12 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   fontSize: '14px',
-                  cursor: isProcessing ? 'not-allowed' : 'pointer',
-                  opacity: isProcessing ? 0.5 : 1,
+                  cursor: currentService.isProcessing ? 'not-allowed' : 'pointer',
+                  opacity: currentService.isProcessing ? 0.5 : 1,
                   transition: 'all 0.15s'
                 }}
                 onMouseEnter={(e) => {
-                  if (!isProcessing) {
+                  if (!currentService.isProcessing) {
                     e.currentTarget.style.backgroundColor = 'rgba(245, 245, 245, 0.2)';
                   }
                 }}
