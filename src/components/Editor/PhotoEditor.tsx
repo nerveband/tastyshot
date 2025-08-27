@@ -383,7 +383,16 @@ The image has been processed successfully - the download feature may not work in
         
         <h1 className="editor-title">EDIT PHOTO</h1>
         
-        <div></div>
+        {/* Save Button - Only show when we have an edited image */}
+        {editedImage && (
+          <button
+            onClick={handleSave}
+            className="header-save-button"
+            title="Save Photo"
+          >
+            <Download size={20} />
+          </button>
+        )}
       </div>
 
       {/* Main Content */}
@@ -494,36 +503,25 @@ The image has been processed successfully - the download feature may not work in
           )}
         </div>
 
-          {/* Image Actions - Beneath Image */}
-          {editedImage && (
+          {/* Upscale buttons only shown with Replicate feature flag */}
+          {enableReplicateModels && editedImage && (
             <div className="image-actions">
-              <button
-                onClick={handleSave}
-                className="save-button"
-              >
-                <Download size={16} className="inline mr-2" />
-                Save Photo
-              </button>
-              
-              {/* Upscale buttons only shown with Replicate feature flag */}
-              {enableReplicateModels && (
-                <div className="upscale-buttons">
-                  <button
-                    onClick={() => handleUpscale('x2')}
-                    disabled={currentService.isProcessing}
-                    className="upscale-button"
-                  >
-                    Upscale 2x
-                  </button>
-                  <button
-                    onClick={() => handleUpscale('x4')}
-                    disabled={currentService.isProcessing}
-                    className="upscale-button"
-                  >
-                    Upscale 4x
-                  </button>
-                </div>
-              )}
+              <div className="upscale-buttons">
+                <button
+                  onClick={() => handleUpscale('x2')}
+                  disabled={currentService.isProcessing}
+                  className="upscale-button"
+                >
+                  Upscale 2x
+                </button>
+                <button
+                  onClick={() => handleUpscale('x4')}
+                  disabled={currentService.isProcessing}
+                  className="upscale-button"
+                >
+                  Upscale 4x
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -853,6 +851,26 @@ The image has been processed successfully - the download feature may not work in
         
         .back-button:hover {
           color: var(--color-tasty-yellow);
+        }
+
+        .header-save-button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 44px;
+          height: 44px;
+          background: linear-gradient(to right, rgb(245, 158, 11), rgb(249, 115, 22));
+          color: var(--color-tasty-black);
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .header-save-button:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
         }
 
         .editor-title {
@@ -1431,6 +1449,11 @@ The image has been processed successfully - the download feature may not work in
           .editor-title {
             font-size: 1rem;
           }
+
+          .header-save-button {
+            width: 40px;
+            height: 40px;
+          }
           
           /* Model selection adjustments */
           .sidebar-section select {
@@ -1466,6 +1489,11 @@ The image has been processed successfully - the download feature may not work in
           
           .controls-sidebar {
             padding: 24px;
+          }
+
+          .header-save-button {
+            width: 42px;
+            height: 42px;
           }
         }
         
