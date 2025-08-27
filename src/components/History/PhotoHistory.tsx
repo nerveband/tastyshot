@@ -105,12 +105,12 @@ export const PhotoHistory: React.FC<PhotoHistoryProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-tasty-black text-tasty-white">
+    <div className="photo-history">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-800">
+      <div className="history-header">
         <button
           onClick={onBack}
-          className="flex items-center space-x-2 text-tasty-white hover:text-tasty-yellow transition-colors"
+          className="back-button"
         >
           <span className="text-xl">←</span>
           <span className="font-bold uppercase tracking-wider">BACK</span>
@@ -122,7 +122,7 @@ export const PhotoHistory: React.FC<PhotoHistoryProps> = ({
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="history-content">
         {photos.length === 0 ? (
           // Empty State
           <div className="text-center py-16">
@@ -142,11 +142,11 @@ export const PhotoHistory: React.FC<PhotoHistoryProps> = ({
           </div>
         ) : (
           // Photos Grid
-          <div className="grid grid-cols-1 gap-4">
+          <div className="photos-grid">
             {photos.map((photo) => (
               <div
                 key={photo.id}
-                className="card hover:bg-gray-800 transition-colors cursor-pointer"
+                className="photo-card"
                 onClick={() => onPhotoSelect(photo)}
               >
                 <div className="flex space-x-4">
@@ -221,6 +221,101 @@ export const PhotoHistory: React.FC<PhotoHistoryProps> = ({
           </div>
         )}
       </div>
+
+      <style>{`
+        .photo-history {
+          min-height: 100vh;
+          background-color: var(--color-tasty-black);
+          color: var(--color-tasty-white);
+        }
+        
+        .history-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px;
+          border-bottom: 1px solid rgb(31, 41, 55);
+        }
+        
+        .back-button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: var(--color-tasty-white);
+          background: none;
+          border: none;
+          cursor: pointer;
+          transition: color 0.2s;
+        }
+        
+        .back-button:hover {
+          color: var(--color-tasty-yellow);
+        }
+        
+        .history-content {
+          padding: 16px;
+        }
+        
+        .photos-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+        
+        .photo-card {
+          background-color: rgba(31, 41, 55, 0.3);
+          border-radius: 8px;
+          padding: 16px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          border: 1px solid rgba(75, 85, 99, 0.3);
+        }
+        
+        .photo-card:hover {
+          background-color: rgba(31, 41, 55, 0.5);
+        }
+        
+        /* Desktop responsive layout */
+        @media (min-width: 768px) {
+          .history-content {
+            padding: 24px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+          }
+          
+          .photos-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+          }
+        }
+        
+        @media (min-width: 1024px) {
+          .history-content {
+            padding: 40px 60px;
+          }
+          
+          .photos-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+          }
+          
+          .photo-card {
+            padding: 24px;
+          }
+        }
+        
+        @media (min-width: 1280px) {
+          .photos-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+        }
+        
+        @media (min-width: 1536px) {
+          .photos-grid {
+            grid-template-columns: repeat(5, 1fr);
+          }
+        }
+      `}</style>
     </div>
   );
 };

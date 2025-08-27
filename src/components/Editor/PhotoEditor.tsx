@@ -250,12 +250,12 @@ The image has been processed successfully - the download feature may not work in
 
 
   return (
-    <div className="min-h-screen bg-tasty-black text-tasty-white">
+    <div className="photo-editor">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-800">
+      <div className="editor-header">
         <button
           onClick={onBack}
-          className="flex items-center space-x-2 text-tasty-white hover:text-tasty-yellow transition-colors"
+          className="back-button"
         >
           <ArrowLeft size={20} />
           <span className="font-bold uppercase tracking-wider">BACK</span>
@@ -266,12 +266,14 @@ The image has been processed successfully - the download feature may not work in
         <div></div>
       </div>
 
-      {/* Image Display */}
-      <div className="relative flex-1 p-4">
-        <div className="relative max-w-2xl mx-auto">
-          {comparisonMode && editedImage ? (
-            // Before/After Comparison with ReactCompareSlider
-            <div className="w-full aspect-square bg-gray-900 rounded-lg overflow-hidden">
+      {/* Main Content */}
+      <div className="editor-content">
+        {/* Image Display */}
+        <div className="image-section">
+          <div className="image-container">
+            {comparisonMode && editedImage ? (
+              // Before/After Comparison with ReactCompareSlider
+              <div className="comparison-wrapper">
               <ReactCompareSlider
                 itemOne={
                   <ReactCompareSliderImage
@@ -344,12 +346,12 @@ The image has been processed successfully - the download feature may not work in
           )}
         </div>
 
-        {/* Compare Toggle Switch - Positioned beneath photo */}
-        <div className="mt-4 flex justify-center">
-          <button
-            onClick={() => setComparisonMode(!comparisonMode)}
-            className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all font-bold text-sm uppercase tracking-wider"
-            style={{
+          {/* Compare Toggle Switch - Positioned beneath photo */}
+          <div className="toggle-section">
+            <button
+              onClick={() => setComparisonMode(!comparisonMode)}
+              className="comparison-toggle"
+              style={{
               backgroundColor: comparisonMode ? 'rgba(255, 215, 0, 0.1)' : 'rgba(245, 245, 245, 0.1)',
               border: `1px solid ${comparisonMode ? 'var(--color-tasty-yellow)' : 'rgba(245, 245, 245, 0.2)'}`,
               color: comparisonMode ? 'var(--color-tasty-yellow)' : 'var(--color-tasty-white)',
@@ -371,10 +373,13 @@ The image has been processed successfully - the download feature may not work in
               />
             </div>
             <span>{comparisonMode ? 'COMPARE ON' : 'COMPARE OFF'}</span>
-          </button>
+            </button>
+          </div>
         </div>
 
-        {/* AI Analysis Display for Gemini */}
+        {/* Controls Sidebar */}
+        <div className="controls-sidebar">
+          {/* AI Analysis Display for Gemini */}
         {modelType === 'gemini' && aiAnalysis && (
           <div className="mt-4 mx-auto max-w-2xl">
             <div className="bg-gray-900/80 rounded-lg border border-gray-700 p-4">
@@ -685,8 +690,139 @@ The image has been processed successfully - the download feature may not work in
             </div>
           </div>
         )}
+        </div>
       </div>
 
+      <style>{`
+        .photo-editor {
+          min-height: 100vh;
+          background-color: var(--color-tasty-black);
+          color: var(--color-tasty-white);
+        }
+        
+        .editor-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px;
+          border-bottom: 1px solid rgb(31, 41, 55);
+        }
+        
+        .back-button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: var(--color-tasty-white);
+          background: none;
+          border: none;
+          cursor: pointer;
+          transition: color 0.2s;
+        }
+        
+        .back-button:hover {
+          color: var(--color-tasty-yellow);
+        }
+        
+        .editor-content {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+        }
+        
+        .image-section {
+          flex: 1;
+          padding: 16px;
+        }
+        
+        .image-container {
+          position: relative;
+          max-width: 32rem;
+          margin: 0 auto;
+        }
+        
+        .comparison-wrapper {
+          width: 100%;
+          aspect-ratio: 1;
+          background-color: rgb(17, 24, 39);
+          border-radius: 8px;
+          overflow: hidden;
+        }
+        
+        .toggle-section {
+          margin-top: 16px;
+          display: flex;
+          justify-content: center;
+        }
+        
+        .comparison-toggle {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          border-radius: 8px;
+          transition: all 0.2s;
+          font-weight: bold;
+          font-size: 0.875rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          cursor: pointer;
+        }
+        
+        .controls-sidebar {
+          padding: 16px;
+          border-top: 1px solid rgb(31, 41, 55);
+          background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Desktop responsive layout */
+        @media (min-width: 1024px) {
+          .editor-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            height: calc(100vh - 80px);
+          }
+          
+          .image-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px;
+          }
+          
+          .image-container {
+            max-width: none;
+            max-height: 80vh;
+          }
+          
+          .controls-sidebar {
+            border-top: none;
+            border-left: 1px solid rgb(31, 41, 55);
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.3);
+          }
+        }
+        
+        @media (min-width: 1280px) {
+          .editor-content {
+            grid-template-columns: 1fr 500px;
+          }
+          
+          .image-section {
+            padding: 60px;
+          }
+        }
+        
+        /* Tablet layout */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .image-container {
+            max-width: 40rem;
+          }
+          
+          .controls-sidebar {
+            padding: 24px;
+          }
+        }
+      `}</style>
     </div>
   );
 };

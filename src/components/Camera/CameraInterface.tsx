@@ -105,31 +105,9 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
   }
 
   return (
-    <div style={{ 
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      width: '100%',
-      height: '100%',
-      backgroundColor: 'var(--color-tasty-black)', 
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden'
-    }}>
+    <div className="camera-interface">
       {/* Header */}
-      <div style={{
-        padding: '16px 20px',
-        paddingTop: 'max(16px, env(safe-area-inset-top))',
-        backgroundColor: 'rgba(0, 0, 0, 0.9)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        minHeight: '60px',
-        flexShrink: 0,
-        zIndex: 1000
-      }}>
+      <div className="camera-header">
         {onBack ? (
           <button
             onClick={onBack}
@@ -568,6 +546,57 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
           </p>
         </div>
       </div>
+
+      <style>{`
+        .camera-interface {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100%;
+          height: 100%;
+          background-color: var(--color-tasty-black);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+        
+        .camera-header {
+          padding: 16px 20px;
+          padding-top: max(16px, env(safe-area-inset-top));
+          background-color: rgba(0, 0, 0, 0.9);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          min-height: 60px;
+          flex-shrink: 0;
+          z-index: 1000;
+        }
+        
+        /* Desktop and tablet responsive layout */
+        @media (min-width: 768px) {
+          .camera-interface {
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            grid-template-rows: auto 1fr;
+            grid-template-areas: 
+              "header header header"
+              "sidebar-left camera sidebar-right";
+          }
+          
+          .camera-header {
+            grid-area: header;
+            padding: 20px 30px;
+          }
+        }
+        
+        @media (min-width: 1200px) {
+          .camera-interface {
+            grid-template-columns: 400px 1fr 400px;
+          }
+        }
+      `}</style>
     </div>
   );
 };

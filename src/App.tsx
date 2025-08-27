@@ -164,35 +164,53 @@ function App() {
     return (
       <div style={{
         position: 'fixed',
-        top: '16px',
-        left: '16px',
-        right: '16px',
-        zIndex: 50,
-        padding: '16px',
-        backgroundColor: 'rgba(127, 29, 29, 0.9)',
-        border: '1px solid rgb(185, 28, 28)',
-        borderRadius: '8px',
-        backdropFilter: 'blur(4px)'
+        top: '24px',
+        left: '24px',
+        right: '24px',
+        zIndex: 1000,
+        maxWidth: '500px',
+        margin: '0 auto',
+        padding: '20px 24px',
+        backgroundColor: 'rgba(220, 38, 38, 0.95)',
+        border: '1px solid rgba(239, 68, 68, 0.6)',
+        borderRadius: '16px',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+        animation: 'slideIn 0.3s ease-out'
       }}>
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
-          alignItems: 'flex-start' 
+          alignItems: 'flex-start',
+          gap: '16px'
         }}>
-          <div>
-            <h3 style={{ 
-              fontWeight: 'bold', 
-              color: 'white', 
-              textTransform: 'uppercase', 
-              letterSpacing: '0.05em', 
-              fontSize: '14px' 
+          <div style={{ flex: 1 }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '8px'
             }}>
-              ERROR
-            </h3>
+              <span style={{ fontSize: '18px' }}>⚠️</span>
+              <h3 style={{ 
+                fontWeight: '700', 
+                color: 'white', 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.05em', 
+                fontSize: '12px',
+                margin: '0'
+              }}>
+                ERROR
+              </h3>
+            </div>
             <p style={{ 
-              color: 'rgb(254, 202, 202)', 
-              fontSize: '14px', 
-              marginTop: '4px' 
+              color: 'rgb(254, 226, 226)', 
+              fontSize: '15px', 
+              lineHeight: '1.5',
+              margin: '0',
+              userSelect: 'text',
+              cursor: 'text',
+              fontWeight: '500'
             }}>
               {error}
             </p>
@@ -200,16 +218,29 @@ function App() {
           <button
             onClick={() => setError(null)}
             style={{
-              color: 'rgb(252, 165, 165)',
+              color: 'rgba(255, 255, 255, 0.8)',
               cursor: 'pointer',
-              background: 'none',
+              background: 'rgba(255, 255, 255, 0.1)',
               border: 'none',
-              fontSize: '18px',
-              padding: '0',
-              transition: 'color 0.2s'
+              fontSize: '20px',
+              padding: '8px',
+              borderRadius: '8px',
+              transition: 'all 0.2s ease',
+              minWidth: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.color = 'rgb(254, 226, 226)'}
-            onMouseLeave={(e) => e.currentTarget.style.color = 'rgb(252, 165, 165)'}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+            }}
+            title="Close error message"
           >
             ×
           </button>
@@ -219,10 +250,7 @@ function App() {
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: 'var(--color-tasty-black)' 
-    }}>
+    <div className="app-container">
       {renderError()}
       
       {currentView === 'home' && (
@@ -257,6 +285,87 @@ function App() {
         />
       )}
 
+      <style>{`
+        .app-container {
+          min-height: 100vh;
+          background-color: var(--color-tasty-black);
+          position: relative;
+          overflow-x: hidden;
+        }
+        
+        /* Error animation */
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        
+        /* Global scrollbar styling */
+        ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+          transition: background-color 0.2s ease;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Selection styling */
+        ::selection {
+          background-color: rgba(255, 107, 53, 0.3);
+          color: white;
+        }
+        
+        ::-moz-selection {
+          background-color: rgba(255, 107, 53, 0.3);
+          color: white;
+        }
+        
+        /* Focus outline for accessibility */
+        button:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible {
+          outline: 2px solid var(--color-tasty-orange);
+          outline-offset: 2px;
+        }
+        
+        /* Smooth transitions for interactive elements */
+        button, input, textarea {
+          transition: all 0.2s ease;
+        }
+        
+        /* Desktop-first responsive breakpoints */
+        @media (max-width: 768px) {
+          .app-container {
+            /* Mobile adjustments handled in individual components */
+          }
+        }
+        
+        /* Reduce motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
