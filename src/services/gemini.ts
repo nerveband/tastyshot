@@ -61,9 +61,9 @@ const maxRetries = 5;
 const baseDelay = 1_233;
 
 // Initialize Google AI client directly
-// Use the existing GEMINI_API_KEY from Vercel environment variables
+// Use the VITE_GEMINI_API_KEY for client-side access in Vite
 const ai = new GoogleGenAI({ 
-  apiKey: process.env.GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || ''
+  apiKey: import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || ''
 });
 
 // Safety settings for image generation
