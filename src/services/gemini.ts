@@ -20,7 +20,7 @@ export const GEMINI_MODELS: GeminiModel[] = [
   {
     id: 'gemini-2.5-flash-image-preview',
     name: 'Gemini 2.5 Flash Image Preview',
-    description: 'Advanced vision model for image analysis and description (Note: Returns analysis, not edited images)',
+    description: '🔍 AI Vision Analysis - Provides detailed descriptions and analysis of your food photos (Does not edit images)',
     provider: 'Google',
     modelId: 'gemini-2.5-flash-image-preview',
     defaultSettings: {
@@ -52,6 +52,11 @@ interface GeminiResponse {
   output?: string[];
   text?: string;
   error?: string | null;
+}
+
+export interface GeminiProcessResult {
+  image: string;
+  analysis: string | null;
 }
 
 class GeminiService {
@@ -113,7 +118,7 @@ class GeminiService {
     imageDataURL: string,
     prompt: string,
     model: GeminiModel = DEFAULT_GEMINI_MODEL
-  ): Promise<string> {
+  ): Promise<GeminiProcessResult> {
     try {
       console.log('=== GEMINI SERVICE: processImage ===');
       console.log('Model:', model.name);
@@ -168,11 +173,16 @@ class GeminiService {
         throw new Error(result.error);
       }
 
-      // Extract the image URL from the response
+      // Extract the image and text from the response
       if (result.output && result.output.length > 0) {
         const outputImage = result.output[0];
         console.log('Output image received, length:', outputImage.length);
-        return outputImage;
+        console.log('Analysis text:', result.text ? result.text.substring(0, 100) + '...' : 'No text');
+        
+        return {
+          image: outputImage,
+          analysis: result.text || null
+        };
       }
 
       throw new Error('No output image generated');

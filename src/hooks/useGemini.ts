@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { geminiService, GEMINI_MODELS, GEMINI_PROMPTS } from '../services/gemini';
-import type { GeminiModel } from '../services/gemini';
+import type { GeminiModel, GeminiProcessResult } from '../services/gemini';
 
 export interface EditingPreset {
   id: string;
@@ -69,7 +69,7 @@ export const useGemini = () => {
     model: GeminiModel,
     imageUrl: string,
     prompt: string
-  ): Promise<string | null> => {
+  ): Promise<GeminiProcessResult | null> => {
     setIsProcessing(true);
     setProgress(['Initializing Gemini AI...']);
     setError(null);
@@ -81,7 +81,7 @@ export const useGemini = () => {
       
       console.log('useGemini - processImage result:', result);
       console.log('useGemini - result type:', typeof result);
-      console.log('useGemini - result length:', result?.length);
+      console.log('useGemini - has analysis:', !!result?.analysis);
       
       if (result) {
         setIsProcessing(false);

@@ -19,6 +19,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   onBack,
 }) => {
   const [editedImage, setEditedImage] = useState<string | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [customPrompt, setCustomPrompt] = useState('');
   const [showCustomPrompt, setShowCustomPrompt] = useState(false);
   const [comparisonMode, setComparisonMode] = useState(true); // Enable by default
@@ -55,7 +56,11 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     let result: string | null = null;
     
     if (modelType === 'gemini') {
-      result = await gemini.processImage(selectedModel as GeminiModel, originalImage, preset.prompt);
+      const geminiResult = await gemini.processImage(selectedModel as GeminiModel, originalImage, preset.prompt);
+      if (geminiResult) {
+        result = geminiResult.image;
+        setAiAnalysis(geminiResult.analysis);
+      }
     } else {
       // For Replicate models, use the settings format
       const defaultSettings = (selectedModel as AIModel).defaultSettings as FluxKontextSettings;
@@ -67,6 +72,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
         height: defaultSettings?.height || 1024,
       };
       result = await replicate.runModel(selectedModel as AIModel, originalImage, settings);
+      setAiAnalysis(null); // Clear analysis for Replicate models
     }
 
     console.log('PhotoEditor - editImage result:', result);
@@ -89,7 +95,11 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     let result: string | null = null;
     
     if (modelType === 'gemini') {
-      result = await gemini.processImage(selectedModel as GeminiModel, originalImage, customPrompt);
+      const geminiResult = await gemini.processImage(selectedModel as GeminiModel, originalImage, customPrompt);
+      if (geminiResult) {
+        result = geminiResult.image;
+        setAiAnalysis(geminiResult.analysis);
+      }
     } else {
       const defaultSettings = (selectedModel as AIModel).defaultSettings as FluxKontextSettings;
       const settings = {
@@ -100,6 +110,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
         height: defaultSettings?.height || 1024,
       };
       result = await replicate.runModel(selectedModel as AIModel, originalImage, settings);
+      setAiAnalysis(null); // Clear analysis for Replicate models
     }
 
     console.log('PhotoEditor - custom editImage result:', result);
@@ -164,7 +175,11 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     let result: string | null = null;
     
     if (modelType === 'gemini') {
-      result = await gemini.processImage(selectedModel as GeminiModel, imageToUpscale, upscalePrompt);
+      const geminiResult = await gemini.processImage(selectedModel as GeminiModel, imageToUpscale, upscalePrompt);
+      if (geminiResult) {
+        result = geminiResult.image;
+        setAiAnalysis(geminiResult.analysis);
+      }
     } else {
       const defaultSettings = (selectedModel as AIModel).defaultSettings as FluxKontextSettings;
       const settings = {
@@ -175,6 +190,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
         height: defaultSettings?.height || 1024,
       };
       result = await replicate.runModel(selectedModel as AIModel, imageToUpscale, settings);
+      setAiAnalysis(null); // Clear analysis for Replicate models
     }
 
     if (result) {
@@ -304,6 +320,23 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
             <span>{comparisonMode ? 'COMPARE ON' : 'COMPARE OFF'}</span>
           </button>
         </div>
+
+        {/* AI Analysis Display for Gemini */}
+        {modelType === 'gemini' && aiAnalysis && (
+          <div className="mt-4 mx-auto max-w-2xl">
+            <div className="bg-gray-900/80 rounded-lg border border-gray-700 p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Bot size={18} className="text-tasty-yellow" />
+                <span className="font-bold text-tasty-yellow uppercase tracking-wider text-sm">
+                  AI ANALYSIS
+                </span>
+              </div>
+              <p className="text-tasty-white/90 text-sm leading-relaxed">
+                {aiAnalysis}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Mobile-First Save Action */}
         {editedImage && (
