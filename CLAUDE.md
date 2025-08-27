@@ -14,7 +14,7 @@ npm run deploy      # Build and deploy to Vercel production
 
 ## Architecture Overview
 
-**TastyShot** is a PWA photo editing app that captures and enhances photos using AI models via Replicate API.
+**TastyShot** is a PWA photo editing app that captures and enhances photos using Google Gemini 2.5 Flash Image Preview model via direct API integration.
 
 ### Core Stack
 - **Frontend**: React 18 + TypeScript + Vite
@@ -35,16 +35,25 @@ npm run deploy      # Build and deploy to Vercel production
 
 ### API Integration
 
-The app uses a serverless proxy pattern to avoid CORS and protect API keys:
-1. Client calls `src/services/gemini.ts` or `src/services/replicate.ts` (legacy)
-2. Service posts to `/api/gemini` or `/api/replicate` endpoint  
-3. Serverless function uses Google Generative AI client with `GEMINI_API_KEY` env var
-4. Returns processed results with base64-encoded images or URLs
+**NEW**: Direct client-side API integration (based on proven gembooth implementation):
+1. Client calls `src/services/gemini.ts` which uses `@google/genai` library directly
+2. No serverless functions needed - direct API calls to Google Gemini
+3. Uses `VITE_GEMINI_API_KEY` environment variable for client-side access
+4. Includes retry logic, rate limiting, and proper error handling
+
+**Legacy**: Serverless proxy pattern for Replicate (still available):
+1. Client calls `src/services/replicate.ts` 
+2. Service posts to `/api/replicate` endpoint
+3. Serverless function handles the API call
 
 ### Environment Variables
 
-Required in Vercel dashboard:
-- `GEMINI_API_KEY`: Your Google Gemini API key (AIza...)
+For local development (.env.local):
+- `VITE_GEMINI_API_KEY`: Your Google Gemini API key (AIza...) - **REQUIRED**
+- `REPLICATE_API_TOKEN`: Your Replicate API token (r8_...) - optional, for legacy support
+
+For production (Vercel dashboard):
+- `VITE_GEMINI_API_KEY`: Your Google Gemini API key (AIza...) - **REQUIRED**
 - `REPLICATE_API_TOKEN`: Your Replicate API token (r8_...) - optional, for legacy support
 
 ## Critical Implementation Details

@@ -12,12 +12,13 @@
     "generate-pwa-assets": "pwa-assets-generator --preset minimal"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
+    "@google/genai": "latest",
     "@supabase/supabase-js": "^2.56.0",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/node": "^24.3.0",
     "@vite-pwa/assets-generator": "^1.0.0",
     "lucide-react": "^0.541.0",
+    "p-limit": "latest",
     "react": "^19.1.1",
     "react-compare-slider": "^3.1.0",
     "react-dom": "^19.1.1",

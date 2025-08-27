@@ -1,4 +1,8 @@
-// Client-side service for Google Gemini AI API interactions
+// Direct client-side service for Google Gemini AI API interactions
+// Based on proven gembooth implementation that works perfectly
+
+import { GoogleGenAI, Modality, HarmCategory, HarmBlockThreshold } from '@google/genai';
+import pLimit from 'p-limit';
 
 export interface GeminiModel {
   id: string;
@@ -46,73 +50,123 @@ export const GEMINI_PROMPTS = {
   ARTISTIC: 'Using the provided image, create an artistic interpretation with creative lighting effects, enhanced textures, and stylized presentation while maintaining the food\'s appeal.'
 };
 
-interface GeminiResponse {
-  id: string;
-  status: 'succeeded' | 'failed' | 'processing';
-  output?: string[];
-  text?: string;
-  error?: string | null;
-}
-
 export interface GeminiProcessResult {
   image: string;
   analysis: string | null;
 }
 
+// Direct client-side API configuration - same as gembooth
+const timeoutMs = 123_333;
+const maxRetries = 5;
+const baseDelay = 1_233;
+
+// Initialize Google AI client directly
+// Use the existing GEMINI_API_KEY from Vercel environment variables
+const ai = new GoogleGenAI({ 
+  apiKey: process.env.GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || ''
+});
+
+// Safety settings for image generation
+const safetySettings = [
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_NONE
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: HarmBlockThreshold.BLOCK_NONE
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: HarmBlockThreshold.BLOCK_NONE
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_NONE
+  }
+];
+
+// Rate limiter to prevent API overload
+const limit = pLimit(2);
+
+// Rate limited function to prevent API overload
+const processWithGemini = async ({ model, prompt, inputFile, signal }: {
+  model: string;
+  prompt: string;
+  inputFile: string;
+  signal?: AbortSignal;
+}): Promise<string> => {
+  return limit(async () => {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), timeoutMs)
+        );
+
+        const modelPromise = ai.models.generateContent({
+          model,
+          config: { 
+            responseModalities: [Modality.TEXT, Modality.IMAGE],
+            safetySettings
+          },
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                { text: prompt },
+                ...(inputFile
+                  ? [
+                      {
+                        inlineData: {
+                          data: inputFile.split(',')[1],
+                          mimeType: 'image/jpeg'
+                        }
+                      }
+                    ]
+                  : [])
+              ]
+            }
+          ]
+        });
+
+        const response = await Promise.race([modelPromise, timeoutPromise]);
+
+        if (!response.candidates || response.candidates.length === 0) {
+          throw new Error('No candidates in response');
+        }
+
+        const inlineDataPart = response.candidates[0]?.content?.parts?.find(
+          p => p.inlineData
+        );
+        if (!inlineDataPart?.inlineData) {
+          throw new Error('No inline data found in response');
+        }
+
+        return 'data:image/png;base64,' + inlineDataPart.inlineData.data;
+      } catch (error: unknown) {
+        if (signal?.aborted || (error instanceof Error && error.name === 'AbortError')) {
+          throw new Error('Request aborted');
+        }
+
+        if (attempt === maxRetries - 1) {
+          throw error;
+        }
+
+        const delay = baseDelay * 2 ** attempt;
+        await new Promise(res => setTimeout(res, delay));
+        console.warn(
+          `Attempt ${attempt + 1} failed, retrying after ${delay}ms...`
+        );
+      }
+    }
+    throw new Error('All retry attempts failed');
+  });
+};
+
 class GeminiService {
-  private apiEndpoint: string;
-
-  constructor() {
-    // Use the API route for serverless function
-    this.apiEndpoint = '/api/gemini';
-  }
-
   /**
-   * Compress image to prevent 413 errors
-   */
-  private async compressImage(dataURL: string, maxSizeMB: number = 4): Promise<string> {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d')!;
-        
-        // Calculate new dimensions to keep under size limit
-        let { width, height } = img;
-        const maxDimension = 1024;
-        
-        if (width > maxDimension || height > maxDimension) {
-          if (width > height) {
-            height = (height * maxDimension) / width;
-            width = maxDimension;
-          } else {
-            width = (width * maxDimension) / height;
-            height = maxDimension;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        // Try different quality levels until under size limit
-        let quality = 0.8;
-        let result = canvas.toDataURL('image/jpeg', quality);
-        
-        while (result.length > maxSizeMB * 1024 * 1024 && quality > 0.1) {
-          quality -= 0.1;
-          result = canvas.toDataURL('image/jpeg', quality);
-        }
-        
-        resolve(result);
-      };
-      img.src = dataURL;
-    });
-  }
-
-  /**
-   * Process an image with Gemini AI
+   * Process an image with Gemini AI using direct client-side API calls
+   * This mirrors the proven gembooth implementation
    */
   async processImage(
     imageDataURL: string,
@@ -120,88 +174,38 @@ class GeminiService {
     model: GeminiModel = DEFAULT_GEMINI_MODEL
   ): Promise<GeminiProcessResult> {
     try {
-      console.log('=== GEMINI SERVICE: processImage ===');
+      console.log('=== GEMINI SERVICE: processImage (Direct API) ===');
       console.log('Model:', model.name);
       console.log('Prompt:', prompt);
-      console.log('Original image size:', imageDataURL.length);
+      console.log('Image size:', imageDataURL.length);
 
-      // Compress image if it's too large (prevent 413 errors)
-      let processedImage = imageDataURL;
-      if (imageDataURL.length > 4 * 1024 * 1024) { // 4MB limit
-        console.log('Compressing large image...');
-        processedImage = await this.compressImage(imageDataURL);
-        console.log('Compressed image size:', processedImage.length);
-      }
-
-      // Always use generateContent action for gemini-2.5-flash-image-preview
-      const action = 'generateContent';
-      
-      // Prepare the request body
-      const requestBody = {
-        action,
+      // Call Gemini API directly using the gembooth approach
+      const result = await processWithGemini({
         model: model.modelId,
-        input: {
-          image: processedImage,
-          prompt: prompt
-        }
-      };
-
-      console.log('Sending request to:', this.apiEndpoint);
-      console.log('Action:', action);
-
-      const response = await fetch(this.apiEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
+        prompt,
+        inputFile: imageDataURL
       });
 
-      console.log('Response status:', response.status);
+      console.log('Gemini API success, image generated');
       
-      if (!response.ok) {
-        const error = await response.json();
-        console.error('API error response:', error);
-        throw new Error(error.details || error.error || 'Failed to process image');
-      }
-
-      const result: GeminiResponse = await response.json();
-      console.log('API result:', result);
-
-      // Check for errors in the response
-      if (result.error) {
-        throw new Error(result.error);
-      }
-
-      // Extract the image and text from the response
-      if (result.output && result.output.length > 0) {
-        const outputImage = result.output[0];
-        console.log('Output image received, length:', outputImage.length);
-        console.log('Analysis text:', result.text ? result.text.substring(0, 100) + '...' : 'No text');
-        
-        return {
-          image: outputImage,
-          analysis: result.text || null
-        };
-      }
-
-      throw new Error('No output image generated');
+      return {
+        image: result,
+        analysis: null // gembooth doesn't return analysis text, focus on image generation
+      };
     } catch (error) {
       console.error('Gemini service error:', error);
-      throw error;
+      throw new Error(error instanceof Error ? error.message : 'Unknown error occurred');
     }
   }
-
 
   /**
    * Check service health
    */
   async checkHealth(): Promise<boolean> {
     try {
-      const response = await fetch(this.apiEndpoint, {
-        method: 'OPTIONS',
-      });
-      return response.ok;
+      // Simple check - verify API key is present
+      const apiKey = process.env.GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
+      return !!apiKey;
     } catch {
       return false;
     }

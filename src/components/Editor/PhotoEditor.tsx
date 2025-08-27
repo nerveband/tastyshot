@@ -19,6 +19,15 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   onBack,
 }) => {
   const [editedImage, setEditedImage] = useState<string | null>(null);
+  
+  // Debug logging for image props
+  React.useEffect(() => {
+    console.log('PhotoEditor - originalImage prop:', originalImage?.substring(0, 50));
+  }, [originalImage]);
+  
+  React.useEffect(() => {
+    console.log('PhotoEditor - editedImage state:', editedImage?.substring(0, 50));
+  }, [editedImage]);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [customPrompt, setCustomPrompt] = useState('');
   const [showCustomPrompt, setShowCustomPrompt] = useState(false);
@@ -269,6 +278,8 @@ The image has been processed successfully - the download feature may not work in
                     src={originalImage}
                     alt="Original"
                     style={{ objectFit: 'cover' }}
+                    onLoad={() => console.log('Original image loaded for comparison:', originalImage.substring(0, 50))}
+                    onError={() => console.error('Original image failed to load for comparison')}
                   />
                 }
                 itemTwo={
@@ -276,6 +287,8 @@ The image has been processed successfully - the download feature may not work in
                     src={editedImage}
                     alt="Edited"
                     style={{ objectFit: 'cover' }}
+                    onLoad={() => console.log('Edited image loaded for comparison:', editedImage.substring(0, 50))}
+                    onError={() => console.error('Edited image failed to load for comparison')}
                   />
                 }
                 position={50}
