@@ -21,7 +21,7 @@ npm run deploy      # Build and deploy to Vercel production
 - **Styling**: Tailwind CSS v4 with inline styles for Leica-inspired UI
 - **PWA**: vite-plugin-pwa for offline support and installability
 - **API**: Vercel serverless functions (`/api/gemini.js` and `/api/replicate.js`)
-- **AI Models**: Google Gemini 2.0 Flash and Imagen3 for image processing and generation
+- **AI Model**: Google Gemini 2.5 Flash Image Preview for image processing
 
 ### Key Components
 
@@ -50,11 +50,11 @@ Required in Vercel dashboard:
 ## Critical Implementation Details
 
 ### AI Model Configuration
-Default model is Google Gemini 2.0 Flash with these parameters:
+Model is Google Gemini 2.5 Flash Image Preview with these parameters:
+- `model`: 'gemini-2.5-flash-image-preview'
 - `temperature`: 1.0
 - `maxOutputTokens`: 8192  
 - `topP`: 0.95
-- Secondary model: Imagen3 for text-to-image generation
 
 ### Error Handling
 - All API calls wrapped in try-catch with detailed logging

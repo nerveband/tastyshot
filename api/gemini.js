@@ -92,7 +92,7 @@ export default async function handler(req, res) {
           
           // Generate content using Gemini
           const response = await ai.models.generateContent({
-            model: model || 'gemini-2.0-flash-exp',
+            model: model || 'gemini-2.5-flash-image-preview',
             contents: [imagePart, input.prompt],
             config: {
               maxOutputTokens: 8192,
@@ -145,66 +145,10 @@ export default async function handler(req, res) {
           throw genError;
         }
       
-      case 'generateImages':
-        try {
-          console.log('=== STARTING GENERATE IMAGES (Imagen3) ===');
-          console.log('Prompt:', input?.prompt);
-          
-          if (!input || !input.prompt) {
-            throw new Error('Missing required input: prompt');
-          }
-          
-          console.log('Starting generateImages call...');
-          const startTime = Date.now();
-          
-          // Generate images using Imagen3
-          const response = await ai.models.generateImages({
-            model: 'imagen-3.0-generate-002',
-            prompt: input.prompt,
-            config: {
-              numberOfImages: 1,
-              outputMimeType: 'image/jpeg',
-              aspectRatio: '1:1',
-              safetyFilterLevel: 'BLOCK_ONLY_HIGH',
-              personGeneration: 'ALLOW_ALL',
-            }
-          });
-          
-          const endTime = Date.now();
-          console.log('generateImages completed in', endTime - startTime, 'ms');
-          
-          // Extract generated images
-          let outputImages = [];
-          if (response.generatedImages && response.generatedImages.length > 0) {
-            for (const genImage of response.generatedImages) {
-              if (genImage.image && genImage.image.imageBytes) {
-                outputImages.push(`data:image/jpeg;base64,${genImage.image.imageBytes}`);
-              }
-            }
-          }
-          
-          // Return in consistent format
-          const responseData = {
-            id: `imagen3_${Date.now()}`,
-            status: 'succeeded',
-            output: outputImages.length > 0 ? outputImages : null,
-            error: outputImages.length === 0 ? 'No images generated' : null
-          };
-          
-          console.log('Sending response with', outputImages.length, 'images');
-          return res.status(200).json(responseData);
-          
-        } catch (genError) {
-          console.error('=== GENERATE IMAGES ERROR ===');
-          console.error('Error name:', genError?.name);
-          console.error('Error message:', genError?.message);
-          console.error('Error stack:', genError?.stack);
-          throw genError;
-        }
         
       default:
         console.error('Invalid action:', action);
-        return res.status(400).json({ error: 'Invalid action. Use "generateContent" or "generateImages"' });
+        return res.status(400).json({ error: 'Invalid action. Use "generateContent"' });
     }
 
   } catch (error) {

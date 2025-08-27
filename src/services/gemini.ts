@@ -18,28 +18,18 @@ export interface GeminiModel {
 // Available Gemini models
 export const GEMINI_MODELS: GeminiModel[] = [
   {
-    id: 'gemini-flash',
-    name: 'Gemini 2.0 Flash',
-    description: 'Ultra-fast multimodal AI model with image understanding and generation capabilities',
+    id: 'gemini-2.5-flash-image-preview',
+    name: 'Gemini 2.5 Flash Image Preview',
+    description: 'Advanced multimodal AI model with image understanding and editing capabilities',
     provider: 'Google',
-    modelId: 'gemini-2.0-flash-exp',
+    modelId: 'gemini-2.5-flash-image-preview',
     defaultSettings: {
       temperature: 1.0,
       maxOutputTokens: 8192,
       topP: 0.95,
     },
-    estimatedTime: '5-10 seconds',
+    estimatedTime: '5-15 seconds',
     cost: 1
-  },
-  {
-    id: 'imagen3',
-    name: 'Imagen 3',
-    description: 'Google\'s latest text-to-image generation model for creating high-quality images',
-    provider: 'Google',
-    modelId: 'imagen-3.0-generate-002',
-    defaultSettings: {},
-    estimatedTime: '10-15 seconds',
-    cost: 2
   }
 ];
 
@@ -86,19 +76,17 @@ class GeminiService {
       console.log('Prompt:', prompt);
       console.log('Image size:', imageDataURL.length);
 
-      // For Imagen3 model, use generateImages action
-      const action = model.id === 'imagen3' ? 'generateImages' : 'generateContent';
+      // Always use generateContent action for gemini-2.5-flash-image-preview
+      const action = 'generateContent';
       
       // Prepare the request body
       const requestBody = {
         action,
         model: model.modelId,
-        input: action === 'generateImages' 
-          ? { prompt: `${prompt}. High quality food photography.` }
-          : {
-              image: imageDataURL,
-              prompt: prompt
-            }
+        input: {
+          image: imageDataURL,
+          prompt: prompt
+        }
       };
 
       console.log('Sending request to:', this.apiEndpoint);
@@ -142,17 +130,6 @@ class GeminiService {
     }
   }
 
-  /**
-   * Generate a new image from text prompt using Imagen3
-   */
-  async generateImage(prompt: string): Promise<string> {
-    const imagen3Model = GEMINI_MODELS.find(m => m.id === 'imagen3');
-    if (!imagen3Model) {
-      throw new Error('Imagen3 model not found');
-    }
-    
-    return this.processImage('', prompt, imagen3Model);
-  }
 
   /**
    * Check service health

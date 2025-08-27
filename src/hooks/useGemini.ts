@@ -99,30 +99,6 @@ export const useGemini = () => {
     }
   }, []);
 
-  // Generate new image from text
-  const generateImage = useCallback(async (prompt: string): Promise<string | null> => {
-    setIsProcessing(true);
-    setProgress(['Generating image with Imagen3...']);
-    setError(null);
-
-    try {
-      const result = await geminiService.generateImage(prompt);
-      
-      if (result) {
-        setIsProcessing(false);
-        setProgress([]);
-        return result;
-      } else {
-        throw new Error('No image generated');
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Generation failed';
-      setError(errorMessage);
-      setIsProcessing(false);
-      setProgress([]);
-      return null;
-    }
-  }, []);
 
   // Clear error
   const clearError = useCallback(() => {
@@ -134,7 +110,6 @@ export const useGemini = () => {
     progress,
     error,
     processImage,
-    generateImage,
     clearError,
     availableModels,
     editingPresets,
