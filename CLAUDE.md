@@ -50,10 +50,12 @@ npm run deploy      # Build and deploy to Vercel production
 
 For local development (.env.local):
 - `VITE_GEMINI_API_KEY`: Your Google Gemini API key (AIza...) - **REQUIRED**
+- `VITE_ENABLE_REPLICATE_MODELS`: Set to 'true' to enable Replicate models (default: false)
 - `REPLICATE_API_TOKEN`: Your Replicate API token (r8_...) - optional, for legacy support
 
 For production (Vercel dashboard):
 - `VITE_GEMINI_API_KEY`: Your Google Gemini API key (AIza...) - **REQUIRED**
+- `VITE_ENABLE_REPLICATE_MODELS`: Set to 'true' to enable Replicate models (default: false)
 - `REPLICATE_API_TOKEN`: Your Replicate API token (r8_...) - optional, for legacy support
 
 ## Critical Implementation Details

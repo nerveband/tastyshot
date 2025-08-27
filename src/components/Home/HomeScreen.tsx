@@ -112,7 +112,7 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
             </div>
             <div className="card-content">
               <h3 className="card-title">Take Photo</h3>
-              <p className="card-description">Launch camera to capture a fresh shot</p>
+              <p className="card-description desktop-only">Launch camera to capture a fresh shot</p>
             </div>
             <button
               className="card-button camera-btn"
@@ -156,7 +156,7 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
                   </div>
                   <div className="card-content">
                     <h3 className="card-title">Select Photo</h3>
-                    <p className="card-description">
+                    <p className="card-description desktop-only">
                       {isDragOver ? '🎯 Drop your image here' : 'Click or drag to upload from device'}
                     </p>
                   </div>
@@ -465,8 +465,15 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
         }
         
+        .desktop-only {
+          display: block;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 767px) {
+          .desktop-only {
+            display: none;
+          }
           .home-screen {
             padding-left: max(16px, env(safe-area-inset-left));
             padding-right: max(16px, env(safe-area-inset-right));

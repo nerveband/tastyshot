@@ -188,10 +188,13 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     }
   };
   
-  // Combined available models (Gemini first, then Replicate)
+  // Feature flag for Replicate models
+  const enableReplicateModels = import.meta.env.VITE_ENABLE_REPLICATE_MODELS === 'true';
+
+  // Combined available models (Gemini first, then Replicate if enabled)
   const allAvailableModels = [
     ...gemini.availableModels.map(model => ({ ...model, type: 'gemini' as const })),
-    ...replicate.availableModels.map(model => ({ ...model, type: 'replicate' as const }))
+    ...(enableReplicateModels ? replicate.availableModels.map(model => ({ ...model, type: 'replicate' as const })) : [])
   ];
 
   // Set default model if none selected (Gemini first)
@@ -201,7 +204,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
       setSelectedModel(defaultModel);
       setModelType(defaultModel.type);
     }
-  }, [allAvailableModels.length, selectedModel]);
+  }, [allAvailableModels, selectedModel]);
 
 
   // Handle custom prompt editing
@@ -588,35 +591,6 @@ The image has been processed successfully - the download feature may not work in
             </div>
           </div>
 
-          {/* AI Model Selection */}
-          <div className="sidebar-section">
-            <div className="section-title">AI Model</div>
-            <div className="mb-2">
-              <select
-                value={selectedModel?.id || ''}
-                onChange={(e) => {
-                  const model = allAvailableModels.find(m => m.id === e.target.value);
-                  if (model) {
-                    setSelectedModel(model);
-                    setModelType(model.type);
-                  }
-                }}
-                className="w-full p-2 bg-gray-900 border border-gray-700 rounded text-white text-sm"
-              >
-                {allAvailableModels.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name} - {model.provider}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {selectedModel && (
-              <div className="p-2 bg-gray-900/60 rounded border border-gray-700 text-xs">
-                <div className="font-medium text-white mb-1">{selectedModel.name}</div>
-                <div className="text-gray-400">{selectedModel.description}</div>
-              </div>
-            )}
-          </div>
 
           {/* Editing Presets - Organized by Category */}
           <div className="sidebar-section">

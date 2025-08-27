@@ -7,6 +7,9 @@ export const useReplicate = () => {
   const [progress, setProgress] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // Feature flag check
+  const enableReplicateModels = import.meta.env.VITE_ENABLE_REPLICATE_MODELS === 'true';
+
   // Run model using Replicate API
   const runModel = useCallback(async (
     model: AIModel,
@@ -112,11 +115,11 @@ export const useReplicate = () => {
     setProgress([]);
   }, []);
 
-  // Get available models
-  const availableModels = replicateService.getAvailableModels();
+  // Get available models (empty if feature flag disabled)
+  const availableModels = enableReplicateModels ? replicateService.getAvailableModels() : [];
 
-  // Get editing presets
-  const editingPresets = replicateService.getEditingPresets();
+  // Get editing presets (empty if feature flag disabled)
+  const editingPresets = enableReplicateModels ? replicateService.getEditingPresets() : [];
 
   return {
     isProcessing,
