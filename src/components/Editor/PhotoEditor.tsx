@@ -128,38 +128,78 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     const imageToSave = editedImage || originalImage;
     
     try {
+      console.log('Starting download process...');
+      console.log('Image to save type:', typeof imageToSave);
+      console.log('Image starts with:', imageToSave.substring(0, 50));
+      
       // For mobile devices, try Web Share API first (allows saving to Photos)
-      if (navigator.share && navigator.canShare) {
-        // Convert base64 to blob
-        const response = await fetch(imageToSave);
-        const blob = await response.blob();
-        const file = new File([blob], 'tastyshot-edited.jpg', { type: 'image/jpeg' });
-        
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: 'TastyShot Enhanced Photo',
-            text: 'Check out my AI-enhanced photo!',
-            files: [file]
-          });
-          return;
+      if (navigator.share && 'canShare' in navigator) {
+        try {
+          // Convert base64 to blob
+          const response = await fetch(imageToSave);
+          const blob = await response.blob();
+          const file = new File([blob], 'tastyshot-edited.jpg', { type: 'image/jpeg' });
+          
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              title: 'TastyShot Enhanced Photo',
+              text: 'Check out my AI-enhanced photo!',
+              files: [file]
+            });
+            console.log('Successfully shared via Web Share API');
+            return;
+          }
+        } catch (shareError) {
+          console.log('Web Share API failed:', shareError);
         }
       }
-    } catch (error) {
-      console.log('Web Share API not available or failed, falling back to download');
-    }
-    
-    // Fallback: Traditional download
-    try {
+      
+      // Fallback: Traditional download
+      console.log('Using traditional download method');
       const link = document.createElement('a');
-      link.href = imageToSave;
+      
+      // Ensure we have a valid data URL
+      if (imageToSave.startsWith('data:')) {
+        link.href = imageToSave;
+      } else if (imageToSave.startsWith('http')) {
+        // If it's a URL, we need to fetch and convert to data URL
+        const response = await fetch(imageToSave);
+        const blob = await response.blob();
+        link.href = URL.createObjectURL(blob);
+      } else {
+        throw new Error('Invalid image format for download');
+      }
+      
       link.download = `tastyshot-${editedImage ? 'enhanced' : 'original'}-${Date.now()}.jpg`;
+      link.style.display = 'none';
+      
+      // Add to DOM, click, and remove
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        if (link.href.startsWith('blob:')) {
+          URL.revokeObjectURL(link.href);
+        }
+      }, 100);
+      
+      console.log('Download initiated successfully');
+      
     } catch (error) {
       console.error('Save failed:', error);
-      // Show user-friendly error
-      alert('Unable to save photo. Please try long-pressing the image and selecting "Save Image".');
+      
+      // Show user-friendly error with alternative
+      const message = `Unable to download automatically. Alternative methods:
+      
+1. Long-press the image above and select "Save Image"
+2. Right-click the image and select "Save As..."
+3. Take a screenshot of the enhanced photo
+
+The image has been processed successfully - the download feature may not work in all browsers.`;
+      
+      alert(message);
     }
   };
 
@@ -170,7 +210,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     
     currentService.clearError();
     
-    const upscalePrompt = `Enhance and upscale this image by ${factor === 'x2' ? '2x' : '4x'} with improved clarity, sharpness, and detail preservation. Maintain the original composition and colors.`;
+    const upscalePrompt = `Using the provided image, create an enhanced version that is upscaled by ${factor === 'x2' ? '2x' : '4x'} with improved clarity, sharpness, and detail preservation. Maintain the original composition and colors while dramatically improving image quality and resolution.`;
     
     let result: string | null = null;
     

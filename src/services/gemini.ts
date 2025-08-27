@@ -20,7 +20,7 @@ export const GEMINI_MODELS: GeminiModel[] = [
   {
     id: 'gemini-2.5-flash-image-preview',
     name: 'Gemini 2.5 Flash Image Preview',
-    description: '🔍 AI Vision Analysis - Provides detailed descriptions and analysis of your food photos (Does not edit images)',
+    description: '🎨 Advanced AI Image Generation & Editing - Creates and edits images with conversational prompts and exceptional detail',
     provider: 'Google',
     modelId: 'gemini-2.5-flash-image-preview',
     defaultSettings: {
@@ -36,14 +36,14 @@ export const GEMINI_MODELS: GeminiModel[] = [
 // Default model
 export const DEFAULT_GEMINI_MODEL = GEMINI_MODELS[0];
 
-// Enhancement prompts for food photography
+// Image editing prompts for Gemini 2.5 Flash Image Preview
 export const GEMINI_PROMPTS = {
-  ENHANCE: 'Enhance this food photo to look more appetizing, vibrant, and professional. Improve lighting, colors, and composition while maintaining the authentic look of the dish.',
-  DRAMATIC: 'Transform this food photo with dramatic lighting, deep shadows, and rich contrasts. Create a moody, cinematic atmosphere that highlights textures and details.',
-  VINTAGE: 'Give this food photo a vintage film aesthetic with warm tones, subtle grain, and nostalgic color grading. Make it look like it was shot on classic film stock.',
-  BW: 'Convert this food photo to black and white with professional contrast, emphasizing textures, shapes, and composition. Create an artistic monochrome image.',
-  PRO_EDIT: 'Apply professional food photography editing: perfect white balance, enhanced details, studio-quality lighting, and magazine-ready presentation.',
-  ARTISTIC: 'Create an artistic interpretation of this food photo with creative effects, unique perspective, and stylized presentation while keeping it appetizing.'
+  ENHANCE: 'Using the provided image, create an enhanced version with improved lighting, more vibrant colors, better contrast, and professional food photography quality. Make the food look more appetizing while preserving the original composition.',
+  DRAMATIC: 'Using the provided image, transform it with dramatic cinematic lighting, deep shadows, rich contrasts, and moody atmosphere. Create a professional, artistic look while keeping the food recognizable.',
+  VINTAGE: 'Using the provided image, recreate it with a vintage film aesthetic - warm sepia tones, subtle film grain, faded edges, and nostalgic color grading typical of classic photography.',
+  BW: 'Using the provided image, convert it to a high-contrast black and white photograph with professional monochrome processing, emphasizing textures and composition.',
+  PRO_EDIT: 'Using the provided image, create a professional food photography version with perfect white balance, enhanced details, studio-quality lighting, and magazine-ready presentation.',
+  ARTISTIC: 'Using the provided image, create an artistic interpretation with creative lighting effects, enhanced textures, and stylized presentation while maintaining the food\'s appeal.'
 };
 
 interface GeminiResponse {

@@ -1,6 +1,55 @@
 import type { AIModel, ReplicateModelSettings, UpscaleSettings, ReplicateResponse, FluxKontextSettings } from '../types';
 
 export const replicateService = {
+  // Compress image for API payload size limits
+  compressImage: (dataUrl: string, maxSize: number = 5 * 1024 * 1024): Promise<string> => {
+    return new Promise((resolve) => {
+      // If image is already small enough, return as-is
+      if (dataUrl.length <= maxSize) {
+        console.log('Image within size limit, no compression needed');
+        resolve(dataUrl);
+        return;
+      }
+
+      console.log('Compressing large image for API...');
+      
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        
+        // Calculate new dimensions to keep under size limit
+        // Start with quality reduction first, then size if needed
+        let quality = 0.8;
+        let maxDimension = Math.max(img.width, img.height);
+        
+        // Reduce max dimension if very large
+        if (maxDimension > 2048) {
+          maxDimension = 2048;
+        }
+        
+        const scale = Math.min(maxDimension / img.width, maxDimension / img.height);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Try different quality levels until we get under the size limit
+        const tryCompress = (q: number): string => {
+          const compressed = canvas.toDataURL('image/jpeg', q);
+          if (compressed.length <= maxSize || q <= 0.1) {
+            console.log(`Compressed to ${compressed.length} bytes with quality ${q}`);
+            return compressed;
+          }
+          return tryCompress(q - 0.1);
+        };
+        
+        resolve(tryCompress(quality));
+      };
+      img.src = dataUrl;
+    });
+  },
+
   // Run any AI model via server-side API
   runModel: async (
     model: AIModel,
@@ -20,8 +69,12 @@ export const replicateService = {
         throw new Error('Invalid image data provided');
       }
       
+      // Compress image if it's too large for the API
+      const compressedImageUrl = await replicateService.compressImage(imageUrl, 5 * 1024 * 1024); // 5MB limit
+      console.log('- Compressed image size:', compressedImageUrl.length);
+      
       // Build input based on model type
-      const input = replicateService.buildModelInput(model, imageUrl, settings);
+      const input = replicateService.buildModelInput(model, compressedImageUrl, settings);
       console.log('- Built input:', input);
       
       // Call our serverless API route instead of Replicate directly

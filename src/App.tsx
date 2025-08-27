@@ -49,22 +49,83 @@ function App() {
     }
   };
 
-  // Save photo to localStorage (would be IndexedDB in production)
-  const savePhotoToHistory = (photoData: Omit<PhotoHistoryItem, 'id' | 'timestamp'>) => {
+  // Compress image before saving to avoid quota issues
+  const compressImageForStorage = (dataUrl: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        
+        // Compress to smaller dimensions and lower quality for storage
+        const maxDimension = 400; // Small thumbnail for history
+        let { width, height } = img;
+        
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          } else {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Very low quality for storage
+        const compressed = canvas.toDataURL('image/jpeg', 0.3);
+        resolve(compressed);
+      };
+      img.src = dataUrl;
+    });
+  };
+
+  // Save photo to localStorage with compression and limits
+  const savePhotoToHistory = async (photoData: Omit<PhotoHistoryItem, 'id' | 'timestamp'>) => {
     try {
       const existingPhotos = localStorage.getItem('tastyshot_photos');
       const photos = existingPhotos ? JSON.parse(existingPhotos) : [];
       
+      // Compress images before saving
+      const compressedOriginal = await compressImageForStorage(photoData.originalImage);
+      const compressedEdited = photoData.editedImage 
+        ? await compressImageForStorage(photoData.editedImage)
+        : undefined;
+      
       const newPhoto: PhotoHistoryItem = {
         ...photoData,
+        originalImage: compressedOriginal,
+        editedImage: compressedEdited,
         id: Date.now().toString(),
         timestamp: new Date().toISOString(),
       };
       
-      const updatedPhotos = [newPhoto, ...photos];
+      // Limit to last 20 photos to prevent quota issues
+      const updatedPhotos = [newPhoto, ...photos].slice(0, 20);
+      
       localStorage.setItem('tastyshot_photos', JSON.stringify(updatedPhotos));
+      console.log('Photo saved to history successfully');
     } catch (err) {
       console.error('Failed to save photo to history:', err);
+      // If still failing due to quota, remove older photos
+      try {
+        const existingPhotos = localStorage.getItem('tastyshot_photos');
+        if (existingPhotos) {
+          const photos = JSON.parse(existingPhotos);
+          // Keep only the 5 most recent photos
+          const reducedPhotos = photos.slice(0, 5);
+          localStorage.setItem('tastyshot_photos', JSON.stringify(reducedPhotos));
+          console.log('Reduced photo history due to storage limits');
+        }
+      } catch (finalErr) {
+        console.error('Failed to clean up photo history:', finalErr);
+        // Clear all photos as last resort
+        localStorage.removeItem('tastyshot_photos');
+        console.log('Cleared photo history due to persistent storage issues');
+      }
     }
   };
 
