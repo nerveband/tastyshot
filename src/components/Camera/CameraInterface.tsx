@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useCamera } from '../../hooks/useCamera';
-import { FolderOpen, SwitchCamera, AlertTriangle, Camera, History, Info, ArrowLeft, Settings, Zap, Grid3X3, Sun } from 'lucide-react';
+import { SwitchCamera, AlertTriangle, Camera, History, Info, ArrowLeft, Zap, Grid3X3, Sun } from 'lucide-react';
 
 interface CameraInterfaceProps {
   onPhotoCapture: (photoDataURL: string) => void;
@@ -30,7 +30,7 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
 
   const [showGrid, setShowGrid] = useState(true);
   const [flashEnabled, setFlashEnabled] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState('none');
+  // const [selectedFilter, setSelectedFilter] = useState('none');
   const [cameraCapabilities, setCameraCapabilities] = useState({
     hasFlash: false,
     hasMultipleCameras: false,
@@ -109,7 +109,7 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
         e.preventDefault();
         switchCamera();
       }
-      if (e.key === 'h' || e.key === 'H' && onHistoryClick) {
+      if ((e.key === 'h' || e.key === 'H') && onHistoryClick) {
         e.preventDefault();
         onHistoryClick();
       }
@@ -141,23 +141,23 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
   }, [selectedCameraId, initializeCameraWithDevice, onError]);
 
   // Handle file upload
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result;
-        if (typeof result === 'string') {
-          onPhotoCapture(result);
-        }
-      };
-      reader.readAsDataURL(file);
-    } else {
-      onError('Please select a valid image file');
-    }
-    // Reset the input
-    event.target.value = '';
-  };
+  // const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0];
+  //   if (file && file.type.startsWith('image/')) {
+  //     const reader = new FileReader();
+  //     reader.onload = (e) => {
+  //       const result = e.target?.result;
+  //       if (typeof result === 'string') {
+  //         onPhotoCapture(result);
+  //       }
+  //     };
+  //     reader.readAsDataURL(file);
+  //   } else {
+  //     onError('Please select a valid image file');
+  //   }
+  //   // Reset the input
+  //   event.target.value = '';
+  // };
 
   if (!isSupported) {
     return (

@@ -207,7 +207,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
       onEditComplete(result);
       
       // Add to timeline history
-      addIterationToHistory(result, preset.prompt, modelType === 'gemini' ? aiAnalysis : undefined);
+      addIterationToHistory(result, preset.prompt, modelType === 'gemini' ? (aiAnalysis || undefined) : undefined);
       
       // Save to localStorage history
       saveToHistory(result, preset.prompt);
@@ -250,7 +250,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
       onEditComplete(result);
       
       // Add to timeline history
-      addIterationToHistory(result, customPrompt, modelType === 'gemini' ? aiAnalysis : undefined);
+      addIterationToHistory(result, customPrompt, modelType === 'gemini' ? (aiAnalysis || undefined) : undefined);
       
       // Save to localStorage history
       saveToHistory(result, customPrompt);
