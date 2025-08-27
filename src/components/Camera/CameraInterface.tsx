@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useCamera } from '../../hooks/useCamera';
-import { SwitchCamera, AlertTriangle, Camera, History, ArrowLeft, Zap, Grid3X3, Sun } from 'lucide-react';
+import { SwitchCamera, AlertTriangle, Camera, History, ArrowLeft, Zap, Sun } from 'lucide-react';
 
 interface CameraInterfaceProps {
   onPhotoCapture: (photoDataURL: string) => void;
@@ -28,7 +28,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
     isSupported,
   } = useCamera();
 
-  const [showGrid, setShowGrid] = useState(true);
   const [flashEnabled, setFlashEnabled] = useState(false);
   // const [selectedFilter, setSelectedFilter] = useState('none');
   const [cameraCapabilities, setCameraCapabilities] = useState({
@@ -103,10 +102,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
         e.preventDefault();
         handleCapturePhoto();
       }
-      if (e.key === 'g' || e.key === 'G') {
-        e.preventDefault();
-        setShowGrid(!showGrid);
-      }
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
         switchCamera();
@@ -119,7 +114,7 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isLoading, showGrid, switchCamera, onHistoryClick]);
+  }, [isLoading, switchCamera, onHistoryClick]);
 
   // Handle photo capture
   const handleCapturePhoto = useCallback(async () => {
@@ -242,15 +237,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
                 </div>
               )}
 
-              <button
-                onClick={() => setShowGrid(!showGrid)}
-                className={`control-button ${showGrid ? 'active' : ''}`}
-                title="Toggle Grid (G)"
-              >
-                <Grid3X3 size={20} />
-                <span>Grid</span>
-                {showGrid && <div className="active-indicator"></div>}
-              </button>
               
               {cameraCapabilities.hasMultipleCameras && (
                 <button
@@ -301,10 +287,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
               <div className="shortcut-item">
                 <kbd>SPACE</kbd>
                 <span>Capture</span>
-              </div>
-              <div className="shortcut-item">
-                <kbd>G</kbd>
-                <span>Grid</span>
               </div>
               <div className="shortcut-item">
                 <kbd>C</kbd>
@@ -365,23 +347,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
               </div>
             )}
 
-            {/* Viewfinder Grid */}
-            {isInitialized && !isLoading && showGrid && (
-              <div className="camera-grid">
-                {/* Rule of thirds grid */}
-                <div className="grid-lines">
-                  <div className="grid-line vertical" style={{ left: '33.33%' }}></div>
-                  <div className="grid-line vertical" style={{ left: '66.67%' }}></div>
-                  <div className="grid-line horizontal" style={{ top: '33.33%' }}></div>
-                  <div className="grid-line horizontal" style={{ top: '66.67%' }}></div>
-                </div>
-                
-                {/* Center focus indicator */}
-                <div className="focus-indicator">
-                  <div className="focus-dot"></div>
-                </div>
-              </div>
-            )}
 
             {/* Error State */}
             {error && !isLoading && (
@@ -465,10 +430,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
                 <span>Use natural light when possible</span>
               </div>
               <div className="tip-item">
-                <Grid3X3 size={16} className="tip-icon" />
-                <span>Use the grid for better composition</span>
-              </div>
-              <div className="tip-item">
                 <Camera size={16} className="tip-icon" />
                 <span>Hold steady for sharp photos</span>
               </div>
@@ -512,15 +473,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
           )}
         </div>
 
-        <div className="mobile-secondary-row">
-          <button
-            onClick={() => setShowGrid(!showGrid)}
-            className={`mobile-action-button ${showGrid ? 'active' : ''}`}
-            title="Toggle Grid"
-          >
-            <Grid3X3 size={20} />
-          </button>
-        </div>
 
         <div className="mobile-instructions">
           <p>TAP TO CAPTURE</p>
@@ -1009,38 +961,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
           transform: translateY(0);
         }
 
-        /* Camera Grid */
-        .camera-grid {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          pointer-events: none;
-          opacity: 0.4;
-          z-index: 5;
-        }
-
-        .grid-lines {
-          width: 100%;
-          height: 100%;
-          position: relative;
-        }
-
-        .grid-line {
-          position: absolute;
-          background: var(--color-tasty-white);
-        }
-
-        .grid-line.vertical {
-          width: 1px;
-          height: 100%;
-        }
-
-        .grid-line.horizontal {
-          height: 1px;
-          width: 100%;
-        }
 
         .focus-indicator {
           position: absolute;
