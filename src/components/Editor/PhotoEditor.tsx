@@ -3,7 +3,7 @@ import { ReactCompareSlider, ReactCompareSliderImage } from 'react-compare-slide
 import { useGemini } from '../../hooks/useGemini';
 import { useReplicate } from '../../hooks/useReplicate';
 import { IconMap } from '../UI/IconMap';
-import { ArrowLeft, Bot, Download, Share } from 'lucide-react';
+import { ArrowLeft, Bot, Download } from 'lucide-react';
 import type { GeminiModel } from '../../services/gemini';
 import type { AIModel, FluxKontextSettings } from '../../types';
 
