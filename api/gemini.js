@@ -1,5 +1,5 @@
 // Serverless function to handle Google Gemini AI API calls securely
-import { GoogleGenAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default async function handler(req, res) {
   console.log('=== GEMINI API HANDLER START ===');
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
 
     // Initialize Gemini client
     console.log('Initializing Gemini client...');
-    const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+    const ai = new GoogleGenerativeAI(GEMINI_API_KEY);
     console.log('Gemini client initialized successfully');
 
     let result;
@@ -90,16 +90,12 @@ export default async function handler(req, res) {
             }
           };
           
+          // Get the model and generate content
+          const modelName = model || 'gemini-2.5-flash-image-preview';
+          const aiModel = ai.getGenerativeModel({ model: modelName });
+          
           // Generate content using Gemini
-          const response = await ai.models.generateContent({
-            model: model || 'gemini-2.5-flash-image-preview',
-            contents: [imagePart, input.prompt],
-            config: {
-              maxOutputTokens: 8192,
-              temperature: 1.0,
-              topP: 0.95,
-            }
-          });
+          const response = await aiModel.generateContent([imagePart, input.prompt]);
           
           const endTime = Date.now();
           console.log('generateContent completed in', endTime - startTime, 'ms');
