@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useCamera } from '../../hooks/useCamera';
-import { SwitchCamera, AlertTriangle, Camera, History, ArrowLeft, Zap, Sun } from 'lucide-react';
+import { SwitchCamera, AlertTriangle, Camera, History, ArrowLeft, Zap, Sun, Download, X, Edit2 } from 'lucide-react';
 
 interface CameraInterfaceProps {
   onPhotoCapture: (photoDataURL: string) => void;
@@ -38,6 +38,8 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
     availableDevices: [] as MediaDeviceInfo[]
   });
   const [selectedCameraId, setSelectedCameraId] = useState<string>('');
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Detect camera capabilities
   const detectCameraCapabilities = useCallback(async () => {
@@ -120,9 +122,50 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
   const handleCapturePhoto = useCallback(async () => {
     const photo = await capturePhoto();
     if (photo) {
-      onPhotoCapture(photo);
+      setPreviewImage(photo);
+      setShowPreview(true);
     }
-  }, [capturePhoto, onPhotoCapture]);
+  }, [capturePhoto]);
+
+  // Handle save original photo
+  const handleSaveOriginal = useCallback(() => {
+    if (!previewImage) return;
+    
+    try {
+      // Create a download link
+      const link = document.createElement('a');
+      link.href = previewImage;
+      link.download = `tastyshot-original-${Date.now()}.jpg`;
+      link.style.display = 'none';
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      setTimeout(() => {
+        document.body.removeChild(link);
+      }, 100);
+      
+      console.log('Original photo saved successfully');
+    } catch (error) {
+      console.error('Failed to save original photo:', error);
+      onError('Failed to save photo. Please try again.');
+    }
+  }, [previewImage, onError]);
+
+  // Handle proceed to edit
+  const handleProceedToEdit = useCallback(() => {
+    if (previewImage) {
+      onPhotoCapture(previewImage);
+      setShowPreview(false);
+      setPreviewImage(null);
+    }
+  }, [previewImage, onPhotoCapture]);
+
+  // Handle retake photo
+  const handleRetake = useCallback(() => {
+    setShowPreview(false);
+    setPreviewImage(null);
+  }, []);
 
   // Handle camera selection
   const handleCameraSelect = useCallback(async (deviceId: string) => {
@@ -361,6 +404,47 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
                   >
                     RETRY
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* Photo Preview Overlay */}
+            {showPreview && previewImage && (
+              <div className="preview-overlay">
+                <div className="preview-content">
+                  <img 
+                    src={previewImage} 
+                    alt="Captured photo" 
+                    className="preview-image"
+                  />
+                  <div className="preview-actions">
+                    <button
+                      onClick={handleRetake}
+                      className="preview-button retake-button"
+                      title="Retake Photo"
+                    >
+                      <X size={20} />
+                      <span>Retake</span>
+                    </button>
+                    
+                    <button
+                      onClick={handleSaveOriginal}
+                      className="preview-button save-button"
+                      title="Save Original Photo"
+                    >
+                      <Download size={20} />
+                      <span>Save Original</span>
+                    </button>
+                    
+                    <button
+                      onClick={handleProceedToEdit}
+                      className="preview-button edit-button"
+                      title="Edit Photo"
+                    >
+                      <Edit2 size={20} />
+                      <span>Edit</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -1070,6 +1154,128 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
         /* Mobile Controls - Hidden on Desktop */
         .mobile-controls {
           display: none;
+        }
+
+        /* Preview Overlay */
+        .preview-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.95);
+          backdrop-filter: blur(20px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 100;
+        }
+
+        .preview-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 32px;
+          padding: 20px;
+          max-width: 90%;
+          max-height: 90%;
+        }
+
+        .preview-image {
+          max-width: 100%;
+          max-height: 60vh;
+          border-radius: 12px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+          object-fit: contain;
+        }
+
+        .preview-actions {
+          display: flex;
+          gap: 16px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        .preview-button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 14px 24px;
+          border: none;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          color: var(--color-tasty-white);
+        }
+
+        .retake-button {
+          background: rgba(239, 68, 68, 0.2);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .retake-button:hover {
+          background: rgba(239, 68, 68, 0.3);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .save-button {
+          background: linear-gradient(to right, rgb(245, 158, 11), rgb(249, 115, 22));
+          color: var(--color-tasty-black);
+        }
+
+        .save-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .edit-button {
+          background: linear-gradient(to right, rgb(59, 130, 246), rgb(147, 51, 234));
+          color: var(--color-tasty-white);
+        }
+
+        .edit-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Mobile Preview Styles */
+        @media (max-width: 768px) {
+          .preview-content {
+            gap: 20px;
+            padding: 16px;
+          }
+
+          .preview-image {
+            max-height: 50vh;
+            border-radius: 8px;
+          }
+
+          .preview-actions {
+            gap: 12px;
+            width: 100%;
+          }
+
+          .preview-button {
+            padding: 12px 20px;
+            font-size: 13px;
+            flex: 1;
+            min-width: 100px;
+          }
+
+          .preview-button span {
+            display: none; /* Hide text on mobile, show only icons */
+          }
+
+          @media (min-width: 400px) {
+            .preview-button span {
+              display: inline; /* Show text on larger mobile screens */
+            }
+          }
         }
 
         /* Animations */
