@@ -1,0 +1,228 @@
+// Serverless function to handle Google Gemini AI API calls securely
+import { GoogleGenAI } from '@google/generative-ai';
+
+export default async function handler(req, res) {
+  console.log('=== GEMINI API HANDLER START ===');
+  console.log('Method:', req.method);
+  
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS preflight request');
+    res.status(200).end();
+    return;
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    console.log('Invalid method:', req.method);
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
+    const { action, model, input } = req.body;
+    
+    console.log('Parsed request:', { action, model, inputKeys: Object.keys(input || {}) });
+    
+    // Check environment variables
+    console.log('Environment check:');
+    console.log('- GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY);
+    console.log('- GOOGLE_API_KEY exists:', !!process.env.GOOGLE_API_KEY);
+    console.log('- NODE_ENV:', process.env.NODE_ENV);
+    console.log('- VERCEL_ENV:', process.env.VERCEL_ENV);
+    
+    // Get API key from environment
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    
+    if (!GEMINI_API_KEY) {
+      console.error('No API key found in environment variables');
+      return res.status(500).json({ 
+        error: 'Gemini API key not configured',
+        details: 'GEMINI_API_KEY or GOOGLE_API_KEY environment variable is missing'
+      });
+    }
+    
+    console.log('API key found, length:', GEMINI_API_KEY.length);
+    console.log('Token starts with:', GEMINI_API_KEY.substring(0, 8) + '...');
+
+    // Initialize Gemini client
+    console.log('Initializing Gemini client...');
+    const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+    console.log('Gemini client initialized successfully');
+
+    let result;
+
+    switch (action) {
+      case 'generateContent':
+        try {
+          console.log('=== STARTING GENERATE CONTENT ===');
+          console.log('Model:', model);
+          console.log('Input details:', {
+            keys: Object.keys(input || {}),
+            imageLength: input?.image?.length || 'N/A',
+            prompt: input?.prompt || 'N/A'
+          });
+          
+          // Validate required inputs
+          if (!input || !input.image) {
+            throw new Error('Missing required input: image');
+          }
+          
+          if (!input.prompt) {
+            throw new Error('Missing required input: prompt');
+          }
+          
+          console.log('Starting generateContent call...');
+          const startTime = Date.now();
+          
+          // Create image part from base64
+          const imagePart = {
+            inlineData: {
+              data: input.image.split(',')[1] || input.image, // Handle data URL or raw base64
+              mimeType: 'image/jpeg'
+            }
+          };
+          
+          // Generate content using Gemini
+          const response = await ai.models.generateContent({
+            model: model || 'gemini-2.0-flash-exp',
+            contents: [imagePart, input.prompt],
+            config: {
+              maxOutputTokens: 8192,
+              temperature: 1.0,
+              topP: 0.95,
+            }
+          });
+          
+          const endTime = Date.now();
+          console.log('generateContent completed in', endTime - startTime, 'ms');
+          
+          // Extract generated image from response if available
+          let outputImage = null;
+          if (response.candidates && response.candidates[0]) {
+            const candidate = response.candidates[0];
+            if (candidate.content && candidate.content.parts) {
+              for (const part of candidate.content.parts) {
+                if (part.inlineData) {
+                  outputImage = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+                  break;
+                }
+              }
+            }
+          }
+          
+          // If no image in response, try to use text response as instruction for image generation
+          if (!outputImage && response.text) {
+            console.log('No image in response, text:', response.text);
+            // For now, we'll return the original image as Gemini doesn't generate new images directly
+            outputImage = input.image;
+          }
+          
+          // Return in consistent format
+          const responseData = {
+            id: `${model.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`,
+            status: 'succeeded',
+            output: outputImage ? [outputImage] : [input.image],
+            text: response.text || null,
+            error: null
+          };
+          
+          console.log('Sending response');
+          return res.status(200).json(responseData);
+          
+        } catch (genError) {
+          console.error('=== GENERATE CONTENT ERROR ===');
+          console.error('Error name:', genError?.name);
+          console.error('Error message:', genError?.message);
+          console.error('Error stack:', genError?.stack);
+          throw genError;
+        }
+      
+      case 'generateImages':
+        try {
+          console.log('=== STARTING GENERATE IMAGES (Imagen3) ===');
+          console.log('Prompt:', input?.prompt);
+          
+          if (!input || !input.prompt) {
+            throw new Error('Missing required input: prompt');
+          }
+          
+          console.log('Starting generateImages call...');
+          const startTime = Date.now();
+          
+          // Generate images using Imagen3
+          const response = await ai.models.generateImages({
+            model: 'imagen-3.0-generate-002',
+            prompt: input.prompt,
+            config: {
+              numberOfImages: 1,
+              outputMimeType: 'image/jpeg',
+              aspectRatio: '1:1',
+              safetyFilterLevel: 'BLOCK_ONLY_HIGH',
+              personGeneration: 'ALLOW_ALL',
+            }
+          });
+          
+          const endTime = Date.now();
+          console.log('generateImages completed in', endTime - startTime, 'ms');
+          
+          // Extract generated images
+          let outputImages = [];
+          if (response.generatedImages && response.generatedImages.length > 0) {
+            for (const genImage of response.generatedImages) {
+              if (genImage.image && genImage.image.imageBytes) {
+                outputImages.push(`data:image/jpeg;base64,${genImage.image.imageBytes}`);
+              }
+            }
+          }
+          
+          // Return in consistent format
+          const responseData = {
+            id: `imagen3_${Date.now()}`,
+            status: 'succeeded',
+            output: outputImages.length > 0 ? outputImages : null,
+            error: outputImages.length === 0 ? 'No images generated' : null
+          };
+          
+          console.log('Sending response with', outputImages.length, 'images');
+          return res.status(200).json(responseData);
+          
+        } catch (genError) {
+          console.error('=== GENERATE IMAGES ERROR ===');
+          console.error('Error name:', genError?.name);
+          console.error('Error message:', genError?.message);
+          console.error('Error stack:', genError?.stack);
+          throw genError;
+        }
+        
+      default:
+        console.error('Invalid action:', action);
+        return res.status(400).json({ error: 'Invalid action. Use "generateContent" or "generateImages"' });
+    }
+
+  } catch (error) {
+    console.error('=== MAIN ERROR HANDLER ===');
+    console.error('Error name:', error?.name);
+    console.error('Error message:', error?.message);
+    console.error('Error stack:', error?.stack);
+    
+    const errorResponse = {
+      error: 'Gemini API error',
+      details: error.message || 'Unknown error occurred',
+      message: error.toString(),
+      type: error?.constructor?.name || 'Unknown'
+    };
+    
+    console.log('Sending error response:', JSON.stringify(errorResponse, null, 2));
+    console.log('=== GEMINI API HANDLER END (ERROR) ===');
+    
+    return res.status(500).json(errorResponse);
+  }
+}

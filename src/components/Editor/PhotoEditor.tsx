@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { ReactCompareSlider, ReactCompareSliderImage } from 'react-compare-slider';
-import { useReplicate } from '../../hooks/useReplicate';
-import { ModelPicker } from '../ModelPicker/ModelPicker';
+import { useGemini } from '../../hooks/useGemini';
 import { IconMap } from '../UI/IconMap';
-import { ArrowLeft, Edit3, Bot, Download, Share } from 'lucide-react';
-import type { AIModel, ReplicateModelSettings, UpscaleSettings } from '../../types';
+import { ArrowLeft, Bot, Download, Share } from 'lucide-react';
+import type { GeminiModel } from '../../services/gemini';
 
 interface PhotoEditorProps {
   originalImage: string;
@@ -21,19 +20,17 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   const [customPrompt, setCustomPrompt] = useState('');
   const [showCustomPrompt, setShowCustomPrompt] = useState(false);
   const [comparisonMode, setComparisonMode] = useState(true); // Enable by default
-  const [showModelPicker, setShowModelPicker] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<AIModel | null>(null);
+  const [selectedModel, setSelectedModel] = useState<GeminiModel | null>(null);
 
   const {
     isProcessing,
     progress,
     error,
-    runModel,
-    upscaleImage,
+    processImage,
     clearError,
     availableModels,
     editingPresets,
-  } = useReplicate();
+  } = useGemini();
 
   // Set default model if none selected
   React.useEffect(() => {
@@ -47,12 +44,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     if (!selectedModel) return;
     
     clearError();
-    const settings: ReplicateModelSettings = {
-      ...selectedModel.defaultSettings,
-      prompt: preset.prompt,
-    };
-
-    const result = await runModel(selectedModel, originalImage, settings);
+    const result = await processImage(selectedModel, originalImage, preset.prompt);
 
     console.log('PhotoEditor - editImage result:', result);
     console.log('PhotoEditor - result type:', typeof result);
@@ -70,12 +62,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     if (!customPrompt.trim() || !selectedModel) return;
     
     clearError();
-    const settings: ReplicateModelSettings = {
-      ...selectedModel.defaultSettings,
-      prompt: customPrompt,
-    };
-
-    const result = await runModel(selectedModel, originalImage, settings);
+    const result = await processImage(selectedModel, originalImage, customPrompt);
 
     console.log('PhotoEditor - custom editImage result:', result);
     console.log('PhotoEditor - custom result type:', typeof result);
@@ -127,17 +114,15 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     }
   };
 
-  // Handle image upscaling
+  // Handle image upscaling (using Gemini's enhance feature)
   const handleUpscale = async (factor: 'x2' | 'x4') => {
     const imageToUpscale = editedImage || originalImage;
     clearError();
     
-    const settings: UpscaleSettings = {
-      upscale_factor: factor,
-      compression_quality: 80,
-    };
-
-    const result = await upscaleImage(imageToUpscale, settings);
+    if (!selectedModel) return;
+    
+    const upscalePrompt = `Enhance and upscale this image by ${factor === 'x2' ? '2x' : '4x'} with improved clarity, sharpness, and detail preservation. Maintain the original composition and colors.`;
+    const result = await processImage(selectedModel, imageToUpscale, upscalePrompt);
 
     if (result) {
       setEditedImage(result);
@@ -322,18 +307,15 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
           <h3 className="font-bold text-sm uppercase tracking-wider text-tasty-white">
             AI MODEL
           </h3>
-          <button
-            onClick={() => setShowModelPicker(true)}
-            className="text-xs font-bold uppercase tracking-wider text-tasty-yellow hover:text-tasty-orange transition-colors"
-          >
-            CHANGE
-          </button>
+          <span className="text-xs font-bold uppercase tracking-wider text-tasty-yellow">
+            POWERED BY GOOGLE
+          </span>
         </div>
         {selectedModel && (
           <div className="p-3 bg-gray-900 rounded-lg border border-gray-700">
             <div className="flex items-center space-x-2 mb-1">
               <div className="flex items-center justify-center">
-                {selectedModel.category === 'image-editing' ? <Edit3 size={18} color="rgb(245, 245, 245)" /> : <Bot size={18} color="rgb(245, 245, 245)" />}
+                <Bot size={18} color="rgb(245, 245, 245)" />
               </div>
               <span className="font-bold text-tasty-white uppercase tracking-wider text-sm">
                 {selectedModel.name}
@@ -545,18 +527,6 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
         )}
       </div>
 
-      {/* Model Picker Modal */}
-      {showModelPicker && (
-        <ModelPicker
-          availableModels={availableModels}
-          selectedModel={selectedModel || availableModels[0]}
-          onModelSelect={(model) => {
-            setSelectedModel(model);
-            setShowModelPicker(false);
-          }}
-          onClose={() => setShowModelPicker(false)}
-        />
-      )}
     </div>
   );
 };
