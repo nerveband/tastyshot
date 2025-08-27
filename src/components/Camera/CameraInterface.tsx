@@ -63,29 +63,21 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
     }
   }, [selectedCameraId]);
 
-  // Initialize camera on mount
+  // Initialize camera on mount - wait for user interaction on iOS
   useEffect(() => {
-    if (isSupported) {
-      detectCameraCapabilities(); // Detect capabilities first
-    } else {
+    if (!isSupported) {
       onError('Camera not supported on this device');
+      return;
     }
+
+    // Detect capabilities but don't initialize camera automatically
+    // This prevents permission dialogs from appearing without user interaction
+    detectCameraCapabilities();
 
     return () => {
       stopCamera();
     };
   }, [isSupported, onError, detectCameraCapabilities, stopCamera]);
-
-  // Initialize camera after capabilities are detected
-  useEffect(() => {
-    if (isSupported && cameraCapabilities.availableDevices.length > 0 && selectedCameraId) {
-      if (selectedCameraId) {
-        initializeCameraWithDevice(selectedCameraId);
-      } else {
-        initializeCamera('environment'); // Fallback to default
-      }
-    }
-  }, [isSupported, cameraCapabilities.availableDevices.length, selectedCameraId, initializeCamera, initializeCameraWithDevice]);
 
   // Handle errors
   useEffect(() => {
@@ -332,8 +324,8 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             </div>
           )}
 
-          {/* Keyboard Shortcuts Help */}
-          <div className="sidebar-section shortcuts">
+          {/* Keyboard Shortcuts Help - Desktop Only */}
+          <div className="sidebar-section shortcuts desktop-only">
             <h3 className="sidebar-title">Shortcuts</h3>
             <div className="shortcut-list">
               <div className="shortcut-item">
@@ -373,6 +365,32 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
                 <div className="loading-content">
                   <div className="loading-spinner"></div>
                   <p className="loading-text">INITIALIZING CAMERA</p>
+                </div>
+              </div>
+            )}
+
+            {/* Camera Permission Overlay - iOS Safari fix */}
+            {!isLoading && !isInitialized && (
+              <div className="camera-overlay permission-overlay">
+                <div className="permission-content">
+                  <div className="permission-icon">📷</div>
+                  <h3 className="permission-title">CAMERA ACCESS REQUIRED</h3>
+                  <p className="permission-message">
+                    Tap "Allow Camera" to enable photo capture
+                  </p>
+                  <button
+                    className="allow-camera-btn"
+                    onClick={async () => {
+                      try {
+                        await initializeCamera('environment');
+                      } catch (error) {
+                        console.error('Manual camera init failed:', error);
+                        onError('Camera access denied. Please check your browser settings and try again.');
+                      }
+                    }}
+                  >
+                    ALLOW CAMERA
+                  </button>
                 </div>
               </div>
             )}
@@ -535,7 +553,7 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
         </div>
 
         <div className="mobile-instructions">
-          <p>TAP TO CAPTURE · SPACE ON DESKTOP</p>
+          <p>TAP TO CAPTURE</p>
         </div>
       </div>
 
@@ -969,6 +987,66 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
 
         .retry-button:hover {
           transform: translateY(-2px);
+        }
+
+        /* Permission Overlay - iOS Safari fix */
+        .permission-overlay {
+          background: rgba(0, 0, 0, 0.95);
+          backdrop-filter: blur(10px);
+        }
+
+        .permission-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: 40px;
+        }
+
+        .permission-icon {
+          font-size: 64px;
+          margin-bottom: 24px;
+          opacity: 0.8;
+        }
+
+        .permission-title {
+          color: var(--color-tasty-white);
+          font-weight: 700;
+          font-size: 18px;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          margin: 0 0 16px 0;
+        }
+
+        .permission-message {
+          color: rgba(255, 255, 255, 0.7);
+          margin: 0 0 32px 0;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .allow-camera-btn {
+          background: var(--gradient-tasty);
+          color: var(--color-tasty-black);
+          font-weight: 700;
+          padding: 16px 32px;
+          border-radius: 12px;
+          border: none;
+          cursor: pointer;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          font-size: 16px;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .allow-camera-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 24px rgba(255, 107, 53, 0.4);
+        }
+
+        .allow-camera-btn:active {
+          transform: translateY(0);
         }
 
         /* Camera Grid */
