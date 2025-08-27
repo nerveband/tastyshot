@@ -554,47 +554,60 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
         /* Mobile styles */
         @media (max-width: 768px) {
           .home-screen {
-            padding: 20px;
+            padding: 16px;
+            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
           }
           
           .bottom-nav {
-            padding: 16px 20px;
+            padding: 12px 16px;
           }
           
           .history-btn {
-            padding: 12px 24px;
+            padding: 10px 20px;
             font-size: 14px;
           }
           
           .main-content {
-            gap: 40px;
+            gap: 24px;
+            padding-bottom: 80px;
+            justify-content: flex-start;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+          }
+          
+          .title-section {
+            margin-top: 20px;
           }
           
           .logo-container {
-            margin-bottom: 24px;
+            margin-bottom: 16px;
           }
           
           .app-logo {
-            width: 80px !important;
-            height: 80px !important;
+            width: 60px !important;
+            height: 60px !important;
           }
           
           .main-title {
-            font-size: 42px;
+            font-size: 28px;
+            margin-bottom: 8px;
           }
           
           .subtitle {
-            font-size: 18px;
+            font-size: 14px;
           }
           
           .options-container {
             grid-template-columns: 1fr;
-            gap: 32px;
+            gap: 20px;
             max-width: 100%;
           }
           
           .divider {
             flex-direction: row;
+            margin: 8px 0;
           }
           
           .divider-line {
@@ -603,40 +616,51 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           }
           
           .camera-btn {
-            width: 120px;
-            height: 120px;
-            font-size: 48px;
+            width: 100px;
+            height: 100px;
+            font-size: 40px;
           }
           
           .upload-area {
             width: 100%;
-            max-width: 280px;
+            max-width: 100%;
+            height: 120px;
+          }
+          
+          .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+          }
+          
+          .upload-text {
+            font-size: 14px;
           }
           
           .option-info h3 {
-            font-size: 20px;
+            font-size: 18px;
+            margin-bottom: 4px;
           }
           
           .option-info p {
-            font-size: 14px;
+            font-size: 13px;
           }
           
           .features-grid {
             grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
+            gap: 12px;
           }
           
           .feature-badge {
-            padding: 8px 16px;
-            gap: 8px;
+            padding: 6px 12px;
+            gap: 6px;
           }
           
           .feature-icon {
-            font-size: 16px;
+            font-size: 14px;
           }
           
           .feature-text {
-            font-size: 14px;
+            font-size: 12px;
           }
         }
         

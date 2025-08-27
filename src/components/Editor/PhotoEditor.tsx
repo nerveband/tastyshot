@@ -52,6 +52,39 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   React.useEffect(() => {
     cleanupStorage();
   }, [cleanupStorage]);
+
+  // Handle mobile keyboard visibility
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined') {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isAndroid = /Android/.test(navigator.userAgent);
+        const isMobile = isIOS || isAndroid;
+        
+        if (isMobile) {
+          const viewportHeight = window.visualViewport?.height || window.innerHeight;
+          const windowHeight = window.screen.height;
+          const threshold = windowHeight * 0.75;
+          
+          setIsKeyboardVisible(viewportHeight < threshold);
+        }
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', handleResize);
+      }
+      
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        if (window.visualViewport) {
+          window.visualViewport.removeEventListener('resize', handleResize);
+        }
+      };
+    }
+  }, []);
   
   // Debug logging for image props
   React.useEffect(() => {
@@ -64,6 +97,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [customPrompt, setCustomPrompt] = useState('');
   const [showCustomPrompt, setShowCustomPrompt] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [comparisonMode, setComparisonMode] = useState(true); // Enable by default
   const [selectedModel, setSelectedModel] = useState<GeminiModel | AIModel | null>(null);
   const [modelType, setModelType] = useState<'gemini' | 'replicate'>('gemini');
@@ -375,7 +409,8 @@ The image has been processed successfully - the download feature may not work in
 
 
   return (
-    <div className="photo-editor">
+    <>
+    <div className={`photo-editor ${isKeyboardVisible ? 'keyboard-visible' : ''}`}>
       {/* Header */}
       <div className="editor-header">
         <button
@@ -581,6 +616,15 @@ The image has been processed successfully - the download feature may not work in
                     placeholder="Describe your edit..."
                     className="w-full p-2 bg-gray-900/60 border border-gray-700 rounded text-white text-sm resize-none focus:border-yellow-500 focus:outline-none"
                     rows={3}
+                    style={{ fontSize: '16px' }} // Prevent iOS zoom
+                    onFocus={(e) => {
+                      // Scroll textarea into view on mobile when keyboard appears
+                      if (window.innerWidth <= 768) {
+                        setTimeout(() => {
+                          e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
+                      }
+                    }}
                   />
                   <button
                     onClick={handleCustomEdit}
@@ -1065,38 +1109,119 @@ The image has been processed successfully - the download feature may not work in
         @media (max-width: 767px) {
           .photo-editor {
             height: 100vh;
+            grid-template-rows: auto 1fr;
           }
           
           .editor-content {
+            display: flex;
             flex-direction: column;
-            gap: 16px;
+            height: 100%;
+            gap: 0;
+            grid-template-columns: none !important;
           }
           
           .image-section {
             flex: 1;
             padding: 12px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
           }
           
           .image-container {
+            flex: 1;
             max-width: none;
-            max-height: 50vh;
+            max-height: none;
+            min-height: 200px;
           }
           
           .single-image {
-            max-height: 45vh;
+            max-height: calc(100vh - 350px);
+            width: 100%;
+            height: auto;
+            object-fit: contain;
           }
           
           .comparison-wrapper {
-            max-height: 45vh;
+            max-height: calc(100vh - 350px);
             min-height: 200px;
+            width: 100%;
+            height: auto;
+          }
+          
+          .toggle-section {
+            margin: 8px 0;
+            flex-shrink: 0;
           }
           
           .controls-sidebar {
             flex-shrink: 0;
             padding: 16px;
-            max-height: none;
+            max-height: 250px;
+            min-height: 250px;
             overflow-y: auto;
-            background-color: rgba(0, 0, 0, 0.3);
+            background-color: rgba(0, 0, 0, 0.95);
+            border-left: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+          }
+          
+          /* Make custom prompt area more mobile-friendly */
+          .custom-prompt-section {
+            padding: 12px 0;
+          }
+          
+          .custom-prompt-section textarea {
+            font-size: 16px !important; /* Prevents zoom on iOS */
+            padding: 12px;
+            min-height: 80px;
+            resize: vertical;
+          }
+          
+          /* Ensure buttons are touch-friendly */
+          .toggle-button {
+            min-height: 44px;
+            font-size: 14px;
+            padding: 10px 12px;
+          }
+          
+          .section-title {
+            font-size: 10px;
+          }
+          
+          /* Adjust timeline for mobile */
+          .timeline-container {
+            max-height: 150px;
+          }
+          
+          .timeline-item {
+            padding: 6px;
+          }
+          
+          .timeline-image {
+            height: 40px;
+          }
+          
+          .timeline-prompt {
+            font-size: 10px;
+          }
+          
+          .timeline-time {
+            font-size: 9px;
+          }
+          
+          /* Keyboard visibility adjustments */
+          .photo-editor.keyboard-visible .image-section {
+            max-height: 30vh;
+          }
+          
+          .photo-editor.keyboard-visible .controls-sidebar {
+            max-height: 200px;
+            padding: 8px;
+          }
+          
+          .photo-editor.keyboard-visible .single-image,
+          .photo-editor.keyboard-visible .comparison-wrapper {
+            max-height: 25vh;
           }
         }
         
@@ -1120,5 +1245,6 @@ The image has been processed successfully - the download feature may not work in
         }
       `}</style>
     </div>
+    </>
   );
 };
