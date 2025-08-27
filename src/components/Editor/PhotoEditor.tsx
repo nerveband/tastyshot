@@ -1246,29 +1246,21 @@ The image has been processed successfully - the download feature may not work in
           }
         }
         
-        /* Safari Safe Area Support */
-        .photo-editor {
-          padding-top: env(safe-area-inset-top);
-          padding-bottom: env(safe-area-inset-bottom);
-          padding-left: env(safe-area-inset-left);
-          padding-right: env(safe-area-inset-right);
-        }
+        /* Safari Safe Area Support - Minimal approach */
         
         .editor-header {
-          padding-left: max(24px, env(safe-area-inset-left));
-          padding-right: max(24px, env(safe-area-inset-right));
-          padding-top: max(20px, env(safe-area-inset-top) + 20px);
-          padding-bottom: 16px; /* Ensure proper spacing */
+          padding-left: max(16px, env(safe-area-inset-left));
+          padding-right: max(16px, env(safe-area-inset-right));
+          padding-top: max(16px, env(safe-area-inset-top));
+          padding-bottom: 16px;
         }
 
         /* Mobile responsive updates */
         @media (max-width: 767px) {
           .photo-editor {
             height: 100vh;
+            height: 100dvh; /* Use dynamic viewport height */
             grid-template-rows: auto 1fr;
-            /* Better height calculation accounting for safe areas */
-            height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-            min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
           }
           
           .editor-content {
@@ -1323,7 +1315,7 @@ The image has been processed successfully - the download feature may not work in
             flex: 1;
             flex-shrink: 0;
             padding: 12px;
-            padding-bottom: max(20px, env(safe-area-inset-bottom) + 20px);
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
             max-height: 60vh; /* Set max height to ensure scrolling works */
             min-height: 0;
             overflow-y: auto;
@@ -1403,7 +1395,7 @@ The image has been processed successfully - the download feature may not work in
           
           .photo-editor.keyboard-visible .controls-sidebar {
             padding: 8px;
-            padding-bottom: max(8px, env(safe-area-inset-bottom) + 8px);
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
           }
           
           .photo-editor.keyboard-visible .single-image,

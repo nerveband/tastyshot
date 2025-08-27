@@ -905,7 +905,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
           max-width: 100%;
           max-height: 100%;
           /* Prevent video from covering UI chrome */
-          padding-bottom: env(safe-area-inset-bottom);
         }
 
         /* Camera Overlays */
@@ -1308,7 +1307,7 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
           .camera-header {
             grid-area: none;
             padding: 16px 20px;
-            padding-top: max(16px, env(safe-area-inset-top));
+            padding-top: max(10px, env(safe-area-inset-top));
             min-height: 60px;
           }
 
@@ -1361,7 +1360,7 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({
             display: flex;
             flex-direction: column;
             padding: 20px;
-            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(20px);
             border-top: 1px solid rgba(255, 255, 255, 0.1);

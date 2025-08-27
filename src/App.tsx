@@ -165,9 +165,9 @@ function App() {
     return (
       <div style={{
         position: 'fixed',
-        top: 'max(24px, env(safe-area-inset-top) + 24px)',
-        left: 'max(24px, env(safe-area-inset-left) + 24px)',
-        right: 'max(24px, env(safe-area-inset-right) + 24px)',
+        top: 'max(16px, env(safe-area-inset-top))',
+        left: 'max(16px, env(safe-area-inset-left))',
+        right: 'max(16px, env(safe-area-inset-right))',
         zIndex: 1000,
         maxWidth: '500px',
         margin: '0 auto',

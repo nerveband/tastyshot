@@ -99,3 +99,4 @@ Vercel configuration in `vercel.json` handles:
 - API route rewrites  
 - Security headers (X-Frame-Options, CSP, etc.)
 - Cache control to prevent stale updates
+- After every successful update, push to both git and vercel using gh and vercel cli.
