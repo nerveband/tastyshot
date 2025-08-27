@@ -5,6 +5,7 @@ import type { GeminiModel, GeminiProcessResult } from '../services/gemini';
 export interface EditingPreset {
   id: string;
   name: string;
+  category: string;
   description: string;
   prompt: string;
   icon: string;
@@ -19,49 +20,73 @@ export const useGemini = () => {
   // Available Gemini models
   const availableModels = GEMINI_MODELS;
 
-  // Editing presets
+  // Editing presets - Refined food photography styles
   const editingPresets: EditingPreset[] = [
+    // FOOD STYLES 🍽️
     {
-      id: 'enhance',
-      name: 'ENHANCE',
-      description: 'AI-powered enhancement',
-      prompt: GEMINI_PROMPTS.ENHANCE,
-      icon: 'sparkles',
+      id: 'overhead',
+      name: 'Overhead Flat Lay',
+      category: 'FOOD STYLES',
+      description: 'Top-down composition',
+      prompt: GEMINI_PROMPTS.OVERHEAD_FLAT_LAY,
+      icon: 'camera',
     },
+    {
+      id: 'texture',
+      name: 'Texture Close-Up',
+      category: 'FOOD STYLES',
+      description: 'Macro detail shot',
+      prompt: GEMINI_PROMPTS.TEXTURE_CLOSE_UP,
+      icon: 'search',
+    },
+    {
+      id: 'delivery',
+      name: 'Delivery Ready',
+      category: 'FOOD STYLES',
+      description: 'Food delivery style',
+      prompt: GEMINI_PROMPTS.DELIVERY_READY,
+      icon: 'package',
+    },
+    {
+      id: 'finedining',
+      name: 'Fine Dining',
+      category: 'FOOD STYLES',
+      description: 'Elegant plating',
+      prompt: GEMINI_PROMPTS.FINE_DINING,
+      icon: 'utensils',
+    },
+    // LIGHTING & MOOD 💡
     {
       id: 'dramatic',
-      name: 'DRAMATIC',
-      description: 'Cinematic lighting',
-      prompt: GEMINI_PROMPTS.DRAMATIC,
-      icon: 'sun',
+      name: 'Dramatic Restaurant',
+      category: 'LIGHTING & MOOD',
+      description: 'Warm ambiance',
+      prompt: GEMINI_PROMPTS.DRAMATIC_RESTAURANT,
+      icon: 'star',
     },
     {
-      id: 'vintage',
-      name: 'VINTAGE',
-      description: 'Film-style look',
-      prompt: GEMINI_PROMPTS.VINTAGE,
-      icon: 'film',
+      id: 'softlight',
+      name: 'Soft Studio Light',
+      category: 'LIGHTING & MOOD',
+      description: 'High-key lighting',
+      prompt: GEMINI_PROMPTS.SOFT_STUDIO_LIGHT,
+      icon: 'lightbulb',
     },
     {
-      id: 'bw',
-      name: 'B&W',
-      description: 'Black and white',
-      prompt: GEMINI_PROMPTS.BW,
-      icon: 'image',
-    },
-    {
-      id: 'pro',
-      name: 'PRO EDIT',
-      description: 'Studio lighting',
-      prompt: GEMINI_PROMPTS.PRO_EDIT,
+      id: 'studio',
+      name: 'Studio Quality',
+      category: 'LIGHTING & MOOD',
+      description: 'Professional DSLR',
+      prompt: GEMINI_PROMPTS.STUDIO_QUALITY,
       icon: 'aperture',
     },
     {
-      id: 'artistic',
-      name: 'ARTISTIC',
-      description: 'Creative effects',
-      prompt: GEMINI_PROMPTS.ARTISTIC,
-      icon: 'palette',
+      id: 'daylight',
+      name: 'Natural Daylight',
+      category: 'LIGHTING & MOOD',
+      description: 'Bright & fresh',
+      prompt: GEMINI_PROMPTS.NATURAL_DAYLIGHT,
+      icon: 'sun',
     },
   ];
 

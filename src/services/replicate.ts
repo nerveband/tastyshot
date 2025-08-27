@@ -391,11 +391,12 @@ export const replicateService = {
     },
   ],
 
-  // Predefined editing prompts for SeedEdit 3.0
+  // Predefined editing prompts for SeedEdit 3.0 - updated to match new category system
   getEditingPresets: () => [
     {
       id: 'enhance',
       name: 'ENHANCE',
+      category: 'GENERAL',
       description: 'Improve colors and lighting',
       prompt: 'Enhance this image with improved brightness, increased color saturation, sharper details, and professional color correction. Adjust exposure levels for optimal lighting, boost vibrancy without oversaturation, and enhance overall image quality while maintaining natural appearance.',
       icon: 'sparkles',
@@ -404,6 +405,7 @@ export const replicateService = {
     {
       id: 'dramatic',
       name: 'DRAMATIC',
+      category: 'GENERAL',
       description: 'Add dramatic mood lighting',
       prompt: 'Transform this image with dramatic cinematic lighting effects. Add strong contrast with deep shadows and bright highlights, create moody atmospheric lighting, increase shadow depth, and apply cinematic color grading with enhanced contrast for a professional film look.',
       icon: 'drama',
@@ -412,6 +414,7 @@ export const replicateService = {
     {
       id: 'vintage',
       name: 'VINTAGE',
+      category: 'GENERAL',
       description: 'Apply vintage film look',
       prompt: 'Convert this image to vintage film style with warm sepia tones, film grain texture, reduced saturation, faded edges, soft contrast, and aged photo appearance. Apply retro color grading with yellowed highlights and muted colors typical of old photographs.',
       icon: 'camera',
@@ -420,6 +423,7 @@ export const replicateService = {
     {
       id: 'blackwhite',
       name: 'B&W',
+      category: 'GENERAL',
       description: 'Convert to black and white',
       prompt: 'Convert this image to high-contrast black and white photography. Remove all color information, increase contrast between light and dark areas, enhance details through grayscale optimization, and create dramatic monochrome effects with professional black and white processing.',
       icon: 'circle',
@@ -428,6 +432,7 @@ export const replicateService = {
     {
       id: 'professional',
       name: 'PRO EDIT',
+      category: 'GENERAL',
       description: 'Professional Leica-style photograph',
       prompt: 'turn into a professional photograph with great color, incredible detail, should feel like a leica. change perspective to be aesthetically pleasing.',
       icon: 'camera',
@@ -436,6 +441,7 @@ export const replicateService = {
     {
       id: 'sunset',
       name: 'SUNSET',
+      category: 'GENERAL',
       description: 'Golden hour lighting',
       prompt: 'Transform this image with golden hour sunset lighting effects. Add warm orange and yellow tones, create soft directional lighting, enhance warm color temperature, add subtle lens flare effects, increase warmth in highlights, and create the magical glow of golden hour photography.',
       icon: 'sun',

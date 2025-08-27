@@ -203,50 +203,6 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     }
   }, [allAvailableModels.length, selectedModel]);
 
-  // Handle preset selection
-  const handlePresetEdit = async (preset: any) => {
-    if (!selectedModel) return;
-    
-    currentService.clearError();
-    
-    let result: string | null = null;
-    
-    if (modelType === 'gemini') {
-      const geminiResult = await gemini.processImage(selectedModel as GeminiModel, originalImage, preset.prompt);
-      if (geminiResult) {
-        result = geminiResult.image;
-        setAiAnalysis(geminiResult.analysis);
-      }
-    } else {
-      // For Replicate models, use the settings format
-      const defaultSettings = (selectedModel as AIModel).defaultSettings as FluxKontextSettings;
-      const settings = {
-        prompt: preset.prompt,
-        guidance_scale: defaultSettings?.guidance_scale || 3.5,
-        num_inference_steps: defaultSettings?.num_inference_steps || 25,
-        width: defaultSettings?.width || 1024,
-        height: defaultSettings?.height || 1024,
-      };
-      result = await replicate.runModel(selectedModel as AIModel, originalImage, settings);
-      setAiAnalysis(null); // Clear analysis for Replicate models
-    }
-
-    console.log('PhotoEditor - editImage result:', result);
-    console.log('PhotoEditor - result type:', typeof result);
-    console.log('PhotoEditor - result length:', result?.length);
-    
-    if (result) {
-      console.log('PhotoEditor - setting edited image to:', result);
-      setEditedImage(result);
-      onEditComplete(result);
-      
-      // Add to timeline history
-      addIterationToHistory(result, preset.prompt, modelType === 'gemini' ? (aiAnalysis || undefined) : undefined);
-      
-      // Save to localStorage history
-      saveToHistory(result, preset.prompt);
-    }
-  };
 
   // Handle custom prompt editing
   const handleCustomEdit = async () => {
@@ -574,48 +530,57 @@ The image has been processed successfully - the download feature may not work in
             )}
           </div>
 
-          {/* Editing Presets */}
+          {/* Editing Presets - Organized by Category */}
           <div className="sidebar-section">
             <div className="section-title">Quick Edits</div>
-            <div className="grid grid-cols-1 gap-2">
-              {currentService.editingPresets.map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => handlePresetEdit(preset)}
-                  disabled={currentService.isProcessing || !selectedModel}
-                  className="p-3 bg-gray-900/60 hover:bg-gray-800/80 border border-gray-700 rounded text-left transition-colors disabled:opacity-50 text-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <IconMap icon={preset.icon} size={16} />
-                    <div>
-                      <div className="font-medium text-white text-xs">{preset.name}</div>
-                      <div className="text-gray-400 text-xs leading-tight mt-0.5">{preset.description}</div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+            
+            {/* Group presets by category */}
+            {['FOOD STYLES', 'LIGHTING & MOOD'].map((category) => (
+              <div key={category} className="mb-3">
+                <div className="text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
+                  {category === 'FOOD STYLES' ? '🍽️' : '💡'} {category}
+                </div>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {currentService.editingPresets
+                    .filter((preset) => preset.category === category)
+                    .map((preset) => (
+                      <button
+                        key={preset.id}
+                        onClick={() => {
+                          // Set the custom prompt with the preset's prompt for editing
+                          setCustomPrompt(preset.prompt);
+                          setShowCustomPrompt(true);
+                        }}
+                        disabled={currentService.isProcessing || !selectedModel}
+                        className="p-2 bg-gray-900/60 hover:bg-gray-800/80 border border-gray-700 rounded text-left transition-colors disabled:opacity-50 text-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <IconMap icon={preset.icon} size={14} />
+                          <div>
+                            <div className="font-medium text-white text-xs uppercase tracking-wider">{preset.name}</div>
+                            <div className="text-gray-400 text-xs leading-tight mt-0.5">{preset.description}</div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Custom Prompt */}
+          {/* Prompt Editor */}
           <div className="sidebar-section">
-            <div className="section-title">Custom Edit</div>
+            <div className="section-title">Prompt Editor</div>
             <div className="space-y-2">
-              <button
-                onClick={() => setShowCustomPrompt(!showCustomPrompt)}
-                className="w-full p-2 bg-gray-900/60 border border-gray-700 rounded text-left font-medium text-white text-sm hover:bg-gray-800/80 transition-colors"
-              >
-                {showCustomPrompt ? '✕ Hide Custom' : '+ Custom Prompt'}
-              </button>
-
-              {showCustomPrompt && (
+              {showCustomPrompt ? (
                 <div className="space-y-2">
+                  <div className="text-xs text-gray-400 mb-1">Edit the prompt below or select a preset above:</div>
                   <textarea
                     value={customPrompt}
                     onChange={(e) => setCustomPrompt(e.target.value)}
-                    placeholder="Describe your edit..."
-                    className="w-full p-2 bg-gray-900/60 border border-gray-700 rounded text-white text-sm resize-none focus:border-yellow-500 focus:outline-none"
-                    rows={3}
+                    placeholder="Describe your edit or select a preset above..."
+                    className="w-full p-3 bg-gray-900/80 border border-gray-600 rounded text-white text-sm resize-none focus:border-yellow-500 focus:outline-none"
+                    rows={4}
                     style={{ fontSize: '16px' }} // Prevent iOS zoom
                     onFocus={(e) => {
                       // Scroll textarea into view on mobile when keyboard appears
@@ -626,14 +591,35 @@ The image has been processed successfully - the download feature may not work in
                       }
                     }}
                   />
-                  <button
-                    onClick={handleCustomEdit}
-                    disabled={currentService.isProcessing || !customPrompt.trim() || !selectedModel}
-                    className="w-full p-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-medium text-sm rounded transition-all disabled:opacity-50 hover:shadow-md"
-                  >
-                    {currentService.isProcessing ? 'Processing...' : 'Apply Edit'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleCustomEdit}
+                      disabled={currentService.isProcessing || !customPrompt.trim() || !selectedModel}
+                      className="flex-1 p-2.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold text-sm rounded transition-all disabled:opacity-50 hover:shadow-lg uppercase tracking-wider"
+                    >
+                      {currentService.isProcessing ? 'Processing...' : '✨ Apply Edit'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowCustomPrompt(false);
+                        setCustomPrompt('');
+                      }}
+                      className="px-3 py-2.5 bg-gray-800 border border-gray-700 rounded text-gray-400 text-sm hover:bg-gray-700 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  </div>
                 </div>
+              ) : (
+                <button
+                  onClick={() => setShowCustomPrompt(true)}
+                  className="w-full p-3 bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 rounded text-white font-medium text-sm hover:from-gray-700 hover:to-gray-800 transition-all"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <span>✏️</span>
+                    <span className="uppercase tracking-wider">Open Prompt Editor</span>
+                  </span>
+                </button>
               )}
             </div>
           </div>

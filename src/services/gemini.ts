@@ -40,14 +40,18 @@ export const GEMINI_MODELS: GeminiModel[] = [
 // Default model
 export const DEFAULT_GEMINI_MODEL = GEMINI_MODELS[0];
 
-// Image editing prompts for Gemini 2.5 Flash Image Preview
+// Image editing prompts for Gemini 2.5 Flash Image Preview - Refined food photography styles
 export const GEMINI_PROMPTS = {
-  ENHANCE: 'Using the provided image, create an enhanced version with improved lighting, more vibrant colors, better contrast, and professional food photography quality. Make the food look more appetizing while preserving the original composition.',
-  DRAMATIC: 'Using the provided image, transform it with dramatic cinematic lighting, deep shadows, rich contrasts, and moody atmosphere. Create a professional, artistic look while keeping the food recognizable.',
-  VINTAGE: 'Using the provided image, recreate it with a vintage film aesthetic - warm sepia tones, subtle film grain, faded edges, and nostalgic color grading typical of classic photography.',
-  BW: 'Using the provided image, convert it to a high-contrast black and white photograph with professional monochrome processing, emphasizing textures and composition.',
-  PRO_EDIT: 'Using the provided image, create a professional food photography version with perfect white balance, enhanced details, studio-quality lighting, and magazine-ready presentation.',
-  ARTISTIC: 'Using the provided image, create an artistic interpretation with creative lighting effects, enhanced textures, and stylized presentation while maintaining the food\'s appeal.'
+  // FOOD STYLES
+  OVERHEAD_FLAT_LAY: 'Using the provided image, transform into overhead flat lay style with complete table setup, props, and styled composition',
+  TEXTURE_CLOSE_UP: 'Using the provided image, create macro close-up highlighting food textures, moisture, and appetizing details',
+  DELIVERY_READY: 'Using the provided image, place food in eco-friendly container on white background, flat lay with utensils and napkins, professional delivery app style',
+  FINE_DINING: 'Using the provided image, style as elegant fine dining presentation with sophisticated plating on premium dinnerware',
+  // LIGHTING & MOOD
+  DRAMATIC_RESTAURANT: 'Using the provided image, apply dramatic restaurant lighting with warm ambiance and strategic shadows',
+  SOFT_STUDIO_LIGHT: 'Using the provided image, apply soft, high-key studio lighting with even illumination and minimal shadows',
+  STUDIO_QUALITY: 'Using the provided image, transform into professional DSLR studio photo with perfect lighting and sharp focus',
+  NATURAL_DAYLIGHT: 'Using the provided image, enhance with bright natural daylight for fresh, clean food photography'
 };
 
 export interface GeminiProcessResult {
