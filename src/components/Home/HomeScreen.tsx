@@ -110,6 +110,15 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           </div>
         </div>
 
+        {/* Timeline Photo Art - Moved between Made by and Action Cards */}
+        <div className="timeline-photo-art-inline">
+          <img 
+            src="/timeline-photo-art-for-home-screen.jpg" 
+            alt="Food photography timeline" 
+            className="timeline-art-image-inline"
+          />
+        </div>
+
         {/* Action Cards */}
         <div className="action-cards">
           {/* Camera Card */}
@@ -176,15 +185,6 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           </div>
         </div>
 
-      </div>
-
-      {/* Timeline Photo Art */}
-      <div className="timeline-photo-art">
-        <img 
-          src="/timeline-photo-art-for-home-screen.jpg" 
-          alt="Food photography timeline" 
-          className="timeline-art-image"
-        />
       </div>
 
       <style>{`
@@ -288,13 +288,11 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           max-width: 800px;
           width: 100%;
           margin: 0 auto;
-          padding: 40px 24px 120px 24px; /* Add bottom padding for timeline art */
+          padding: 40px 24px 40px 24px; /* Balanced padding without bottom timeline art */
           display: flex;
           flex-direction: column;
-          gap: 40px;
-          overflow-y: auto; /* Allow content to scroll if needed */
-          position: relative;
-          z-index: 2; /* Above timeline art */
+          gap: 32px; /* Reduced gap to prevent overflow */
+          overflow: hidden; /* No scrolling on home screen */
         }
         
         /* Welcome Section */
@@ -337,6 +335,25 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
         .made-by-header a:hover {
           color: var(--color-tasty-yellow);
           text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+        }
+        
+        /* Inline Timeline Photo Art */
+        .timeline-photo-art-inline {
+          width: 100%;
+          height: 80px;
+          margin: 24px 0;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .timeline-art-image-inline {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          opacity: 1;
+          filter: none;
         }
         
         /* Action Cards */
@@ -513,8 +530,8 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           }
           
           .main-content {
-            padding: 24px 16px 100px 16px; /* Adjust bottom padding for timeline art */
-            gap: 32px;
+            padding: 24px 16px 24px 16px; /* Balanced padding without timeline art */
+            gap: 24px; /* Reduced gap for mobile */
           }
           
           .welcome-title {
@@ -552,27 +569,6 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           }
         }
         
-        /* Timeline Photo Art */
-        .timeline-photo-art {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          width: 100%;
-          height: 80px;
-          overflow: hidden;
-          z-index: 1;
-          pointer-events: none;
-        }
-        
-        .timeline-art-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: center;
-          opacity: 1;
-          filter: none;
-        }
         
         /* Tablet */
         @media (min-width: 768px) and (max-width: 1023px) {
@@ -593,14 +589,15 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
             min-height: 180px;
           }
           
-          .timeline-photo-art {
+          .timeline-photo-art-inline {
             height: 100px;
           }
         }
         
         @media (min-width: 1024px) {
-          .timeline-photo-art {
+          .timeline-photo-art-inline {
             height: 120px;
+            margin: 32px 0;
           }
         }
       `}</style>

@@ -399,7 +399,18 @@ The image has been processed successfully - the download feature may not work in
                   <ReactCompareSliderImage
                     src={originalImage}
                     alt="Original"
-                    style={{ objectFit: 'contain', width: '100%', height: '100%', maxHeight: '70vh', display: 'block' }}
+                    style={{ 
+                      objectFit: 'contain', 
+                      width: '100%', 
+                      height: '100%', 
+                      maxHeight: '70vh', 
+                      display: 'block',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0
+                    }}
                     onLoad={() => console.log('Original image loaded for comparison:', originalImage.substring(0, 50))}
                     onError={() => console.error('Original image failed to load for comparison')}
                   />
@@ -408,7 +419,18 @@ The image has been processed successfully - the download feature may not work in
                   <ReactCompareSliderImage
                     src={editedImage}
                     alt="Edited"
-                    style={{ objectFit: 'contain', width: '100%', height: '100%', maxHeight: '70vh', display: 'block' }}
+                    style={{ 
+                      objectFit: 'contain', 
+                      width: '100%', 
+                      height: '100%', 
+                      maxHeight: '70vh', 
+                      display: 'block',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0
+                    }}
                     onLoad={() => console.log('Edited image loaded for comparison:', editedImage.substring(0, 50))}
                     onError={() => console.error('Edited image failed to load for comparison')}
                   />
@@ -545,7 +567,7 @@ The image has been processed successfully - the download feature may not work in
                   onClick={() => setShowTimeline(true)}
                   className="timeline-button-inline"
                 >
-                  📸 View Timeline ({editingHistory.length})
+                  📸 Timeline Edits ({editingHistory.length})
                 </button>
               )}
             </div>
@@ -1240,14 +1262,16 @@ The image has been processed successfully - the download feature may not work in
           }
           
           .image-section {
-            /* Reduced from flex: 1 to give more space to controls */
-            flex: 0.5;
+            /* Optimized for save button visibility */
+            flex: 0.6;
             padding: 8px;
             display: flex;
             flex-direction: column;
             min-height: 0;
-            max-height: 35vh; /* Further reduced to prevent save button blocking */
-            overflow: visible; /* Allow save button to be visible */
+            max-height: 40vh; /* Increased to show save button */
+            overflow: visible;
+            position: relative;
+            z-index: 10; /* Ensure save button is above other content */
           }
           
           .image-container {
@@ -1277,18 +1301,22 @@ The image has been processed successfully - the download feature may not work in
           }
           
           .controls-sidebar {
-            /* Increased space for controls */
+            /* Optimized for scrolling and save button visibility */
             flex: 1;
             flex-shrink: 0;
             padding: 12px;
-            padding-bottom: max(12px, env(safe-area-inset-bottom) + 12px);
-            max-height: none; /* Remove height constraints */
-            min-height: none; /* Remove height constraints */
+            padding-bottom: max(20px, env(safe-area-inset-bottom) + 20px);
+            max-height: 60vh; /* Set max height to ensure scrolling works */
+            min-height: 0;
             overflow-y: auto;
+            overflow-x: hidden;
             background-color: rgba(0, 0, 0, 0.95);
             border-left: none;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            gap: 12px; /* Reduced gap between sections */
+            gap: 12px;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
           }
           
           /* Prioritize prompt editor section on mobile */
@@ -1667,30 +1695,35 @@ The image has been processed successfully - the download feature may not work in
           height: 100%;
         }
         
-        /* Ensure both images have identical dimensions and alignment */
+        /* Perfect alignment for comparison slider */
         .comparison-wrapper [data-testid="rcs-container"] {
           width: 100% !important;
           height: 100% !important;
           position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          overflow: hidden;
         }
         
         .comparison-wrapper [data-testid="rcs-container"] > div {
           width: 100% !important;
           height: 100% !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
         }
         
         .comparison-wrapper img {
           width: 100% !important;
           height: 100% !important;
           object-fit: contain !important;
-          object-position: center !important;
+          object-position: center center !important;
           display: block !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
         }
         
         @media (max-width: 767px) {
