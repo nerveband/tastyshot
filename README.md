@@ -1,53 +1,45 @@
-# 🍽️ TASTY SHOT
+# 🍽️ TastyShot
 
-A professional PWA photo editor powered by AI, designed with a Leica-inspired aesthetic. Capture, edit, and enhance photos instantly with cutting-edge AI models.
+**Transform your food photos with AI-powered enhancement**
 
-## ✨ Features
+A professional PWA photo editor designed specifically for food photography. Capture, edit, and enhance your culinary creations with advanced AI models and refined food-specific editing presets.
 
-### 📸 **Camera Interface**
-- Instant camera access with iOS optimization
-- Professional viewfinder with rule-of-thirds grid
-- Front/back camera switching
-- Leica-inspired UI design with dark theme
+## ✨ Key Features
 
-### 🎨 **AI-Powered Editing**
-- **Qwen Image Edit Model**: Advanced AI image editing
-- **6 Preset Styles**: Enhance, Dramatic, Vintage, B&W, Pro Edit, Artistic
-- **Custom Prompts**: Describe your vision in natural language
-- **Real-time Streaming**: Live progress updates during processing
-- **Image Upscaling**: 2x and 4x enhancement options
+- **📸 Instant Camera Access**: Take photos directly in the app with iOS-optimized camera interface
+- **🎨 AI-Powered Food Enhancement**: 8 specialized food photography presets organized by style and lighting
+- **📝 Prompt Preview Editor**: Edit and customize AI prompts before applying
+- **🔄 Before/After Comparison**: Interactive slider to compare original vs enhanced photos
+- **📱 Progressive Web App**: Install on any device, works offline
+- **📚 Photo History**: Keep track of your edited photos locally
+- **⚡ Real-time Processing**: Powered by Google Gemini 2.5 Flash Image Preview
 
-### 🔄 **Before/After Comparison**
-- Interactive slider to compare original vs edited
-- Smooth transition animation
-- Professional comparison interface
+## 🍴 Food Photography Presets
 
-### 📱 **PWA Features**
-- **Offline Ready**: Works without internet connection
-- **Install Prompt**: Add to home screen like a native app
-- **iOS Optimized**: Perfect mobile experience on Safari
-- **HTTPS Required**: Secure camera access
+### Food Styles 🍽️
+- **Overhead Flat Lay**: Top-down composition with styled table setup
+- **Texture Close-Up**: Macro detail shots highlighting food textures
+- **Delivery Ready**: Professional food container presentation
+- **Fine Dining**: Elegant plating on premium dinnerware
 
-### 🗂️ **Photo History**
-- Local storage of edited photos
-- Re-edit previous photos with new prompts
-- Download and share functionality
-- Delete unwanted edits
+### Lighting & Mood 💡
+- **Dramatic Restaurant**: Warm ambiance with strategic shadows
+- **Soft Studio Light**: High-key lighting with minimal shadows
+- **Studio Quality**: Professional DSLR-style photography
+- **Natural Daylight**: Bright, fresh daylight enhancement
 
-## 🚀 **Tech Stack**
+## 🚀 Getting Started
 
-- **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: Tailwind CSS with custom Leica design system
-- **PWA**: Vite PWA Plugin + Workbox
-- **AI**: Replicate API (Qwen Image Edit + Google Upscaler)
-- **Camera**: getUserMedia API with iOS optimizations
-- **Storage**: localStorage (IndexedDB ready for Phase 2)
+### Prerequisites
+- Node.js 18+ 
+- Google Gemini API key
+- HTTPS environment (required for camera access)
 
-## 🛠️ **Installation**
+### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/tastyshot.git
+   git clone https://github.com/nerveband/tastyshot.git
    cd tastyshot
    ```
 
@@ -57,15 +49,11 @@ A professional PWA photo editor powered by AI, designed with a Leica-inspired ae
    ```
 
 3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   ```
    
-   Edit `.env` with your API keys:
+   Create a `.env` file:
    ```env
-   VITE_REPLICATE_API_TOKEN=your_replicate_api_token
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   GEMINI_API_KEY=your_gemini_api_key_here
+   VITE_GEMINI_API_KEY=your_gemini_api_key_here
    ```
 
 4. **Start development server**
@@ -78,89 +66,31 @@ A professional PWA photo editor powered by AI, designed with a Leica-inspired ae
    npm run build
    ```
 
-## 🔧 **API Keys Setup**
+## 🔑 API Setup
 
-### Replicate API
-1. Sign up at [Replicate](https://replicate.com)
-2. Get your API token from the dashboard
-3. Add to `.env` as `VITE_REPLICATE_API_TOKEN`
+### Google Gemini API
+1. Visit [Google AI Studio](https://aistudio.google.com/)
+2. Get your Gemini API key
+3. Add both `GEMINI_API_KEY` and `VITE_GEMINI_API_KEY` to your environment variables
 
-### Supabase (Phase 2 - Credit System)
-1. Create project at [Supabase](https://supabase.com)
-2. Get URL and anon key from settings
-3. Add to `.env` as shown above
+## 🛠️ Tech Stack
 
-## 📱 **iOS Setup**
+- **Frontend**: React 18 + TypeScript + Vite
+- **AI Processing**: Google Gemini 2.5 Flash Image Preview
+- **Styling**: Tailwind CSS with custom design system
+- **PWA**: Vite PWA Plugin + Workbox
+- **Deployment**: Vercel with serverless functions
+- **Camera**: getUserMedia API with mobile optimizations
 
-For optimal iOS experience:
+## 📱 Mobile Optimization
 
-1. **HTTPS Required**: Camera access requires HTTPS
-2. **Add to Home Screen**: Install as PWA for best performance
-3. **Safari Compatibility**: Optimized for iOS Safari
-4. **Touch Gestures**: Native-feeling touch interactions
+- **Responsive Design**: Mobile-first approach with viewport-fitted layouts
+- **Keyboard Handling**: Smart keyboard detection and UI adjustments
+- **Touch Gestures**: Native-feeling interactions
+- **PWA Installation**: Add to home screen for app-like experience
+- **Offline Support**: Service worker caching for offline functionality
 
-## 🎨 **Design System**
-
-### Colors
-- **Background**: Deep Black (#000000)
-- **Text**: Subtle White (#F5F5F5)
-- **Accents**: Red-Orange-Yellow Gradient
-- **Theme**: Professional camera aesthetic
-
-### Typography
-- **Font**: Clean sans-serif (Arial, Helvetica)
-- **Style**: All caps, wide tracking
-- **Weight**: Bold for emphasis
-
-## 🔮 **Phase 2: Credit System**
-
-The app is architected to easily add:
-
-### Authentication
-- Supabase Auth integration
-- User registration/login
-- Profile management
-
-### Credit System
-- PostgreSQL database schema ready
-- Transaction tracking
-- Usage analytics
-- Subscription management
-
-### Database Schema
-```sql
--- Users (managed by Supabase Auth)
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  email VARCHAR UNIQUE NOT NULL,
-  credits INTEGER DEFAULT 10,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Photo editing history
-CREATE TABLE photos (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id),
-  original_url TEXT NOT NULL,
-  edited_url TEXT,
-  prompt TEXT NOT NULL,
-  cost INTEGER DEFAULT 1,
-  status VARCHAR DEFAULT 'completed',
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Credit transactions
-CREATE TABLE credit_transactions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id),
-  amount INTEGER NOT NULL,
-  type VARCHAR NOT NULL, -- 'purchase', 'usage', 'refund'
-  description TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-## 🚀 **Deployment**
+## 🚀 Deployment
 
 ### Vercel (Recommended)
 ```bash
@@ -168,52 +98,58 @@ npm run deploy
 ```
 
 ### Manual Deployment
-1. Build the app: `npm run build`
-2. Deploy `dist/` folder to your hosting provider
-3. Configure environment variables on hosting platform
-4. Enable HTTPS for camera access
+1. Build: `npm run build`
+2. Deploy the `dist/` folder
+3. Configure environment variables on your platform
+4. Ensure HTTPS is enabled
 
-## 🔒 **Security**
+## 🔧 Development Commands
 
-- **HTTPS Enforced**: Required for camera access
-- **Environment Variables**: API keys properly secured
-- **CSP Headers**: Content Security Policy ready
-- **No Inline Scripts**: Secure PWA configuration
+```bash
+npm run dev        # Start development server
+npm run build      # Build for production  
+npm run lint       # Run ESLint
+npm run preview    # Preview production build
+npm run deploy     # Build and deploy to Vercel
+```
 
-## 🐛 **Troubleshooting**
+## 🎨 Design Philosophy
 
-### Camera Issues
-- Ensure HTTPS is enabled
-- Check browser permissions
+TastyShot features a **Leica-inspired aesthetic** with:
+- Deep black backgrounds (#000000)
+- Subtle white text (#F5F5F5) 
+- Red-orange gradient accents
+- Clean typography with wide letter spacing
+- Professional camera interface design
+
+## 🐛 Troubleshooting
+
+### Camera Access Issues
+- Ensure you're using HTTPS
+- Check browser permissions for camera access
 - Try refreshing the page
-- Clear browser cache
+- Clear browser cache and reload
+
+### API Issues
+- Verify your Gemini API key is correctly set
+- Check API quota and billing status
+- Monitor network requests in browser dev tools
 
 ### PWA Issues
 - Clear service worker cache
-- Reinstall PWA from browser
-- Check network connectivity
+- Reinstall PWA from browser menu
+- Check network connectivity for initial load
 
-### API Issues
-- Verify API keys in environment variables
-- Check Replicate account quota
-- Monitor network requests in dev tools
+## 📞 Contact & Support
 
-## 📄 **License**
+- **Email**: [hello@ashrafali.net](mailto:hello@ashrafali.net)
+- **Issues**: Use GitHub Issues for bug reports and feature requests
+- **Creator**: [Ashraf Ali](https://ashrafali.net)
 
-MIT License - See LICENSE file for details
+## 📄 License
 
-## 🤝 **Contributing**
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open Pull Request
-
-## 📞 **Support**
-
-For issues and feature requests, please use GitHub Issues or contact support.
+MIT License - See [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with ❤️ using modern web technologies**
+**Made by [Ashraf](https://ashrafali.net) ❤️**

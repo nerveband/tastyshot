@@ -105,7 +105,6 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
             </button>
             <div className="option-info">
               <h3>Launch Camera</h3>
-              <p>Take a fresh photo with your camera</p>
             </div>
           </div>
 
@@ -155,24 +154,15 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
             
             <div className="option-info">
               <h3>Select Photo</h3>
-              <p>Upload from your device or drag & drop</p>
             </div>
           </div>
         </div>
 
-        {/* Features */}
-        <div className="features-grid">
-          {[
-            { icon: '✨', text: 'AI Enhancement' },
-            { icon: '🎨', text: 'Style Filters' },
-            { icon: '⚡', text: 'Instant Results' },
-            { icon: '📱', text: 'Mobile Ready' }
-          ].map((feature, index) => (
-            <div key={index} className="feature-badge">
-              <span className="feature-icon">{feature.icon}</span>
-              <span className="feature-text">{feature.text}</span>
-            </div>
-          ))}
+        {/* Made By Credit */}
+        <div className="made-by">
+          <a href="https://ashrafali.net" target="_blank" rel="noopener noreferrer">
+            Made by Ashraf ❤️
+          </a>
         </div>
       </div>
 
@@ -471,39 +461,29 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
           backdrop-filter: blur(10px);
         }
         
-        .features-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 24px;
-          width: 100%;
-          max-width: 800px;
+        .made-by {
+          text-align: center;
         }
         
-        .feature-badge {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px 20px;
-          background-color: rgba(255, 255, 255, 0.05);
-          border-radius: 24px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(8px);
-          transition: all 0.2s ease;
-        }
-        
-        .feature-badge:hover {
-          background-color: rgba(255, 255, 255, 0.08);
-          transform: translateY(-2px);
-        }
-        
-        .feature-icon {
-          font-size: 18px;
-        }
-        
-        .feature-text {
-          font-size: 16px;
-          color: rgba(255, 255, 255, 0.8);
+        .made-by a {
+          color: rgba(255, 255, 255, 0.6);
+          text-decoration: none;
+          font-size: 14px;
           font-weight: 500;
+          transition: all 0.3s ease;
+          padding: 8px 16px;
+          border-radius: 20px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          display: inline-block;
+        }
+        
+        .made-by a:hover {
+          color: var(--color-tasty-orange);
+          background: rgba(255, 107, 53, 0.1);
+          border-color: rgba(255, 107, 53, 0.3);
+          transform: translateY(-2px);
         }
         
         /* Tablet styles */
@@ -545,10 +525,6 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
             height: 140px;
           }
           
-          .features-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-          }
         }
         
         /* Mobile styles */
@@ -645,23 +621,6 @@ export const HomeScreen = ({ onCameraLaunch, onPhotoSelect, onHistoryClick }: Ho
             font-size: 13px;
           }
           
-          .features-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-          }
-          
-          .feature-badge {
-            padding: 6px 12px;
-            gap: 6px;
-          }
-          
-          .feature-icon {
-            font-size: 14px;
-          }
-          
-          .feature-text {
-            font-size: 12px;
-          }
         }
         
         @keyframes spin {
